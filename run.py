@@ -40,10 +40,13 @@ def parse_arguments() -> Namespace:
         "--model", type=str, required=True, help="The agent model to use"
     )
     parser.add_argument(
+        "--api_base", type=str, default=None, help="The API base to use"
+    )
+    parser.add_argument(
         "--agent_strategy",
         type=str,
         required=True,
-        choices=["tool-calling", "custom"],
+        choices=["tool-calling"],
         help="The agent strategy to use",
     )
     parser.add_argument(
@@ -160,7 +163,7 @@ def update_checkpoint(ckpt_path, result, lock):
             json.dump(data + [result.model_dump()], f, indent=2)
 
 
-def run(config: Namespace) -> List[EnvRunResult]:
+def run(config: Namespace):
     timestamp = datetime.now().strftime("%m%d%H%M%S")
     checkpoint_filename = (
         f"{config.env}-{config.agent_strategy}-{os.path.basename(config.model)}-{config.temperature}_"
@@ -181,6 +184,7 @@ def run(config: Namespace) -> List[EnvRunResult]:
     agent = get_agent(
         tools_info=env.tools_info,
         model=config.model,
+        api_base=config.api_base,
         temperature=config.temperature,
         agent_strategy=config.agent_strategy,
         rule=env.rule,
@@ -220,16 +224,6 @@ def run(config: Namespace) -> List[EnvRunResult]:
         while True:
             try:
                 response = agent.run(env=isolated_env, task_index=idx)
-                fault_result = role_fault_classification(
-                    {
-                        "messages": response.messages,
-                        "instruction": isolated_env.task.instruction,
-                        "gold_sql": isolated_env.task.gold_sql,
-                        "gold_answer": isolated_env.task.gold_answer,
-                    }
-                )
-                if config.eval_mode == "valid" and response.reward is None:
-                    response.reward = 0.0
                 result = EnvRunResult(
                     task_idx=idx,
                     trial=trial,
@@ -239,20 +233,39 @@ def run(config: Namespace) -> List[EnvRunResult]:
                     cost=CostInfo(
                         agent_cost=response.agent_cost,
                         user_cost=isolated_env.user.get_total_cost(),
-                        eval_cost=fault_result["eval_cost"],
+                        eval_cost=0.0,
                         total_cost=round(
-                            response.agent_cost
-                            + isolated_env.user.get_total_cost()
-                            + fault_result["eval_cost"],
-                            8,
+                            response.agent_cost + isolated_env.user.get_total_cost(), 8
                         ),
                     ),
                 )
-                simulation_retry += 1
-                if (
-                    fault_result["role"] == "agent"
-                    or simulation_retry == config.simulation_retry
-                ):
+                # valid mode: gold answer exists (task successful)
+                if response.reward == 1:
+                    update_checkpoint(ckpt_path, result, lock)
+                    exit_flag = True
+                # valid mode: gold answer exists (task failed)
+                elif response.reward == 0:
+                    fault_result = role_fault_classification(
+                        {
+                            "messages": response.messages,
+                            "instruction": isolated_env.task.instruction,
+                            "gold_sql": isolated_env.task.gold_sql,
+                            "gold_answer": isolated_env.task.gold_answer,
+                        }
+                    )
+                    simulation_retry += 1
+                    if (
+                        fault_result["role"] == "agent"
+                        or simulation_retry == config.simulation_retry
+                    ):
+                        result.cost.eval_cost = round(fault_result["eval_cost"], 8)
+                        result.cost.total_cost = round(
+                            result.cost.total_cost + fault_result["eval_cost"], 8
+                        )
+                        update_checkpoint(ckpt_path, result, lock)
+                        exit_flag = True
+                # test mode: gold answer does not exist (skip evaluation)
+                else:
                     update_checkpoint(ckpt_path, result, lock)
                     exit_flag = True
             except Exception as e:
@@ -274,6 +287,8 @@ def run(config: Namespace) -> List[EnvRunResult]:
         if config.eval_mode == "valid":
             print("✅" if result.reward == 1 else "❌", f"task_id={idx}", result.info)
             print("-----")
+        elif config.eval_mode == "test":
+            print(f"task_id={idx}", result.info)
         return result
 
     with ThreadPoolExecutor(max_workers=config.max_concurrency) as executor:
