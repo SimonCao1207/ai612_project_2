@@ -1,8 +1,10 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import SQLAlchemyError
-from pydantic import BaseModel, Field
+
 
 class SqlDbQuery(BaseModel):
     engine: Engine = Field(..., description="The engine to execute queries on.")
@@ -20,9 +22,7 @@ class SqlDbQuery(BaseModel):
             base_response = str(result[:k])
             if n > k:
                 additional = n - k
-                base_response += (
-                    f"\n\nNote: There are {additional} results not shown (out of {n} total results)."
-                )
+                base_response += f"\n\nNote: There are {additional} results not shown (out of {n} total results)."
         except SQLAlchemyError as e:
             """Format the error message"""
             base_response = f"Error: {e}"
@@ -40,14 +40,14 @@ class SqlDbQuery(BaseModel):
                     "properties": {
                         "query": {
                             "type": "string",
-                            "description": "A valid SQL query to execute."
+                            "description": "A valid SQL query to execute.",
                         },
                         "k": {
                             "type": "integer",
                             "description": "The maximum number of results to return. Default is 100.",
-                        }
+                        },
                     },
-                    "required": ["query"]
-                }
-            }
+                    "required": ["query"],
+                },
+            },
         }

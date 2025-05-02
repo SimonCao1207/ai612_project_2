@@ -1,7 +1,9 @@
-from typing import Dict, Any
+from typing import Any, Dict
+
 from pydantic import BaseModel, Field
-from sqlalchemy.engine import Engine
 from sqlalchemy import inspect
+from sqlalchemy.engine import Engine
+
 
 class SqlDbListTables(BaseModel):
     engine: Engine = Field(..., description="The engine to list tables from.")
@@ -29,7 +31,7 @@ class SqlDbListTables(BaseModel):
                             "description": "An empty string; no input required.",
                         }
                     },
-                    "required": []
-                }
-            }
+                    "required": [],
+                },
+            },
         }

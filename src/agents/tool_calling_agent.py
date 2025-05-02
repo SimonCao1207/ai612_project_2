@@ -1,6 +1,7 @@
 import time
+from typing import Any, Dict, List, Optional
+
 from litellm import completion
-from typing import List, Optional, Dict, Any
 
 from src.agents.base import Agent
 from src.envs.base import Env
@@ -21,6 +22,7 @@ TOOL_CALLING_INSTRUCTION = """- You are a SQL agent that translates natural lang
 - Your performance is evaluated based on the latest SQL query you generate, so when generating a new SQL query for the user's request, avoid relying on previous results but instead rewrite it from scratch to fully capture the user's intent and ensure it is accurately assessed.
 """
 
+
 class ToolCallingAgent(Agent):
     def __init__(
         self,
@@ -33,7 +35,7 @@ class ToolCallingAgent(Agent):
         self.rule = rule
         self.model = model
         self.temperature = temperature
-        self.instruction = TOOL_CALLING_INSTRUCTION + '\nRules:\n'+self.rule
+        self.instruction = TOOL_CALLING_INSTRUCTION + "\nRules:\n" + self.rule
 
     def run(
         self, env: Env, task_index: Optional[int] = None, max_num_steps: int = 30
@@ -60,13 +62,13 @@ class ToolCallingAgent(Agent):
                     break
                 except Exception as e:
                     time.sleep(3)
-                    print(e, end='\r')
+                    print(e, end="\r")
             next_message = res.choices[0].message.model_dump()
             action = convert_message_to_action(next_message)
             env_response = env.step(action)
             reward = env_response.reward
             env_info = {**env_info, **env_response.info.model_dump()}
-            if action.name != 'respond':
+            if action.name != "respond":
                 next_message["tool_calls"] = next_message["tool_calls"][:1]
                 messages.extend(
                     [
@@ -93,6 +95,5 @@ class ToolCallingAgent(Agent):
             reward=reward,
             messages=messages,
             agent_cost=round(agent_cost, 8),
-            info=env_info
+            info=env_info,
         )
-

@@ -1,12 +1,14 @@
-import json
-import ast
-from typing import Dict, Any
+from typing import Any, Dict
+
+from pydantic import BaseModel, Field
 from sqlalchemy import text
 from sqlalchemy.engine import Engine
-from pydantic import BaseModel, Field
+
 
 class ValueSubstringSearch(BaseModel):
-    engine: Engine = Field(..., description="The engine to retrieve sample values from.")
+    engine: Engine = Field(
+        ..., description="The engine to retrieve sample values from."
+    )
 
     class Config:
         arbitrary_types_allowed = True
@@ -23,7 +25,7 @@ class ValueSubstringSearch(BaseModel):
                 n = count_result.scalar()
                 if n is None:
                     return f"Error: Unable to count matches in {table}.{column} for '{value}'."
-                
+
                 # Step 2: Retrieve up to k matching distinct values
                 query = text(
                     f"SELECT DISTINCT {column} FROM {table} WHERE {column} LIKE :pattern COLLATE NOCASE LIMIT {k}"
@@ -34,9 +36,11 @@ class ValueSubstringSearch(BaseModel):
 
                 if not matching_vals:
                     return f"No values in {table}.{column} contain '{value}'."
-                
+
                 # Step 3: Construct the response
-                base_response = f"Values in {table}.{column} containing '{value}': {matching_vals}."
+                base_response = (
+                    f"Values in {table}.{column} containing '{value}': {matching_vals}."
+                )
                 return base_response
         except Exception as e:
             return f"Error retrieving matching values: {str(e)}"
@@ -53,8 +57,14 @@ class ValueSubstringSearch(BaseModel):
                     "properties": {
                         "table": {"type": "string", "description": "The table name."},
                         "column": {"type": "string", "description": "The column name."},
-                        "value": {"type": "string", "description": "The substring to search for."},
-                        "k": {"type": "integer", "description": "The maximum number of values to return. Default is 100."},
+                        "value": {
+                            "type": "string",
+                            "description": "The substring to search for.",
+                        },
+                        "k": {
+                            "type": "integer",
+                            "description": "The maximum number of values to return. Default is 100.",
+                        },
                     },
                     "required": ["table", "column", "value"],
                 },

@@ -1,7 +1,9 @@
 import abc
 from typing import Optional
+
 from src.envs.base import Env
 from src.types import AgentRunResult
+
 
 class Agent(abc.ABC):
     @abc.abstractmethod
