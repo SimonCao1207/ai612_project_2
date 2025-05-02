@@ -10,12 +10,15 @@
   - Use SQLite for SQL query generation.
   - The current time is '2100-12-31 23:59:00'. When referring to time, do not use SQLite's native functions like now. Instead, use '2100-12-31 23:59:00' for 'now', '2100-12-31' for 'today', '2100-12' for 'this month', and '2100' for 'this year'.
   - Use DENSE_RANK() when asked for ranking results, but retrieve only the relevant items, excluding their counts or ranks. When the question does not explicitly mention ranking, do not use DENSE_RANK().
-  - Use DISTINCT in queries related to the cost of events, drug routes, or when counting or listing patients or hospital/ICU visits.
-  - When calculating the total cost, sum the patient’s diagnoses, procedures, lab events, and prescription costs within a single hospital admission only.
-  - Use DISTINCT to retrieve the cost of a single event (diagnosis, procedure, lab event, or prescription).
-  - For cost-related questions, use cost.event_type to specify the event type ('procedures_icd', 'labevents', 'prescriptions', 'diagnoses_icd') when retrieving costs for procedures, lab events, prescriptions, or diagnoses, respectively.
-  - Calculate a patient's age once per hospital admission. The age remains constant even if the hospital stay exceeds one year.
+  - For cost-related questions, use cost.event_type to specify the event type ('procedures_icd', 'labevents', 'prescriptions', 'diagnoses_icd') when retrieving costs for procedures, lab events, prescriptions, or diagnoses, respectively. When retrieving costs for procedures, join cost.event_id with procedures_icd.row_id. For lab events, join with labevents.row_id. For prescriptions, join with prescriptions.row_id. For diagnoses, join with diagnoses_icd.row_id.
+  - Do not calculate the age on your own, use the age stored in the database. The age remains constant even if the hospital stay exceeds one year.
   - Use inputevents for input-related values and outputevents for output-related values.
+  - The prescriptions table stores ordered or prescribed medications, while the inputevents table records administered drugs
   - When asked about the careunit, refer to the careunit information in the transfer table.
   - When asked to retrieve procedures, diagnoses, or lab tests, return their names or labels of their medical codes (i.e., procedure: d_icd_procedures.long_title, diagnosis: d_icd_diagnoses.long_title, lab test: d_labitems.label).
-  - When a question involves the time of diagnosis in relation to other types of events, use the first diagnosis time for each patient.
+  - When a question involves the time of diagnosis in relation to other types of events, use the first diagnosis time for each patient (if not specified otherwise).
+- Grading criteria:
+  - The DB agent's performance evaluation is solely based on the final SQL query generated in the conversation.
+  - For accurate assessment, each new SQL query must be written from scratch to comprehensively address the user's latest request, without depending on previous query results.
+  - The DB agent is limited to 30 total interactions with the user and database combined, requiring efficient use of available interactions.
+  - For any questions involving calculations or data aggregation, the DB agent must use SQL queries rather than relying on LLM capabilities, as evaluation is based exclusively on SQL query accuracy.
