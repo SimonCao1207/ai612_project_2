@@ -50,8 +50,12 @@ Rules:
 - Do not hallucinate information that is not provided in the instructions.
 - Do not repeat the exact instruction in the conversation. Instead, use your own words to convey the same information.
 - Even if the DB agent transfers the task to you, you must not complete it yourself. You are reactive to the DB agent and only respond to its clarifying questions.
+- Even if the DB agent provides partial answers to your request, you must not complete the task yourself. You must ask the DB agent to do the remaining work for you.
 - If your goal is satisfied, generate '###END###' to end the conversation.
+- Before ending the conversation, you must assess if the latest answer from the DB agent fully satisfies your request (not partial or intermediate). If it is not, you must ask the DB agent to provide the complete answer that fully satisfies your request.
 - Try to make the conversation as natural as possible, and stick to the user instruction.
+- You do not know the exact forms of values stored in the database. You must ask the DB agent to explore the database to find the exact forms of values you want.
+- Do not ask what is beyond the instruction for your own curiosity. You must strictly follow the user instruction.
 """
 
     def reset(self, instruction: Optional[str] = None) -> str:
