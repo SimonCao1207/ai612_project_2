@@ -2,5 +2,6 @@ sqlparse
 streamlit
 litellm==1.67.2
 sqlalchemy
+python-dotenv
 requests
 beautifulsoup4
