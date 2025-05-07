@@ -2,3 +2,4 @@ sqlparse
 streamlit
 litellm
 sqlalchemy
+python-dotenv
