@@ -22,22 +22,94 @@ load_dotenv()
 
 def parse_arguments() -> Namespace:
     parser = ArgumentParser()
-    parser.add_argument("--env", type=str, required=True, choices=["mimic_iv"], help="Environment name for fetching user instructions")
-    parser.add_argument("--eval_mode", type=str, required=True, choices=["valid", "test"], help="Task set to use")
-    parser.add_argument("--model", type=str, required=True, help="The agent model to use")
-    parser.add_argument("--api_base", type=str, default=None, help="The API base to use")
-    parser.add_argument("--agent_strategy", type=str, required=True, choices=["tool-calling"], help="The agent strategy to use")
-    parser.add_argument("--temperature", type=float, required=True, help="Sampling temperature for the action model")
-    parser.add_argument("--user_model", type=str, default='gpt-4o-mini', help="The user model to use")
-    parser.add_argument("--user_strategy", type=str, default='llm', help="The user strategy to use")
-    parser.add_argument("--result_dir", type=str, default="results", help="Directory to save the results")
-    parser.add_argument("--seed", type=int, required=False, default=42, help="Seed for reproducibility")
-    parser.add_argument("--num_trials", type=int, required=False, default=1, help="Number of trials to run")
-    parser.add_argument("--max_concurrency", type=int, required=False, default=1, help="Maximum concurrency level")
-    parser.add_argument("--start_index", type=int, required=False, default=0, help="Start index for tasks")
-    parser.add_argument("--end_index", type=int, required=False, default=-1, help="End index for tasks (-1 for all)")
-    parser.add_argument("--task_ids", nargs='+', type=int, required=False, default=None, help="Specific task ids to run")
-    parser.add_argument("--simulation_retry", type=int, required=False, default=10, help="Number of simulation retries")    
+    parser.add_argument(
+        "--env",
+        type=str,
+        required=True,
+        choices=["mimic_iv"],
+        help="Environment name for fetching user instructions",
+    )
+    parser.add_argument(
+        "--eval_mode",
+        type=str,
+        required=True,
+        choices=["valid", "test"],
+        help="Task set to use",
+    )
+    parser.add_argument(
+        "--model", type=str, required=True, help="The agent model to use"
+    )
+    parser.add_argument(
+        "--agent_strategy",
+        type=str,
+        required=True,
+        choices=["tool-calling"],
+        help="The agent strategy to use",
+    )
+    parser.add_argument(
+        "--temperature",
+        type=float,
+        required=True,
+        help="Sampling temperature for the action model",
+    )
+    parser.add_argument(
+        "--user_model", type=str, default="gpt-4o-mini", help="The user model to use"
+    )
+    parser.add_argument(
+        "--user_strategy", type=str, default="llm", help="The user strategy to use"
+    )
+    parser.add_argument(
+        "--result_dir",
+        type=str,
+        default="results",
+        help="Directory to save the results",
+    )
+    parser.add_argument(
+        "--seed", type=int, required=False, default=42, help="Seed for reproducibility"
+    )
+    parser.add_argument(
+        "--num_trials",
+        type=int,
+        required=False,
+        default=1,
+        help="Number of trials to run",
+    )
+    parser.add_argument(
+        "--max_concurrency",
+        type=int,
+        required=False,
+        default=1,
+        help="Maximum concurrency level",
+    )
+    parser.add_argument(
+        "--start_index",
+        type=int,
+        required=False,
+        default=0,
+        help="Start index for tasks",
+    )
+    parser.add_argument(
+        "--end_index",
+        type=int,
+        required=False,
+        default=-1,
+        help="End index for tasks (-1 for all)",
+    )
+    parser.add_argument(
+        "--task_ids",
+        nargs="+",
+        type=int,
+        required=False,
+        default=None,
+        help="Specific task ids to run",
+    )
+    parser.add_argument(
+        "--simulation_retry",
+        type=int,
+        required=False,
+        default=10,
+        help="Number of simulation retries",
+    )
     return parser.parse_args()
 
 
@@ -109,7 +181,6 @@ def run(config: Namespace):
     agent = get_agent(
         tools_info=env.tools_info,
         model=config.model,
-        api_base=config.api_base,
         temperature=config.temperature,
         agent_strategy=config.agent_strategy,
         rule=env.rule,
