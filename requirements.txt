@@ -1,4 +1,6 @@
 sqlparse
 streamlit
-litellm
+litellm==1.67.2
 sqlalchemy
+requests
+beautifulsoup4
