@@ -3,7 +3,5 @@ streamlit
 litellm==1.67.2
 sqlalchemy
 python-dotenv
-litellm==1.67.2
-sqlalchemy
 requests
 beautifulsoup4
