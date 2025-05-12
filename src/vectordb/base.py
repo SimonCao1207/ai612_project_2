@@ -13,9 +13,8 @@ class VectorStore(ABC):
     async def add_documentation(
         self,
         documentation: str,
-        question: str = None,
         metadatas=None,
-        add_name=None,
+        ids=None,
         **kwargs,
     ) -> str:
         pass
