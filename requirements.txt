@@ -5,3 +5,5 @@ sqlalchemy
 python-dotenv
 requests
 beautifulsoup4
+chromadb==1.0.8
+sentence-transformers==4.1.0
