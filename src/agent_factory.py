@@ -19,14 +19,12 @@ def get_agent(
             temperature=temperature,
             rule=rule,
         )
-    else:
-        # TODO: implement your own agent and return it here
-        raise ValueError(
-            f"Agent strategy {agent_strategy} not implemented. Erase this line after implementing your own agent."
-        )
-        from src.agents.TODO_implement_agent import TodoImplementAgent
+    elif agent_strategy == "plan-and-execute":
+        from src.agents.plan_and_execute_agent import PlanAndExecuteAgent
 
-        return TodoImplementAgent(
+        return PlanAndExecuteAgent(
+            tools_info=tools_info,
             model=model,
             temperature=temperature,
+            rule=rule,
         )
