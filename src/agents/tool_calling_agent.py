@@ -5,8 +5,11 @@ from litellm import completion
 
 from src.agents.base import Agent
 from src.envs.base import Env
+from src.log import Logger
 from src.types import AgentRunResult
 from src.utils import convert_message_to_action
+
+logger = Logger()
 
 TOOL_CALLING_INSTRUCTION = """- You are a SQL agent that translates natural language questions into precise SQL queries for electronic health records (EHR).
 - You are currently engaged in a conversation with a user who wants to retrieve data from an EHR database.
@@ -49,6 +52,8 @@ class ToolCallingAgent(Agent):
             {"role": "system", "content": self.instruction},
             {"role": "user", "content": obs_user},
         ]
+
+        logger.log_chat(obs_user, "User request")
         for _ in range(max_num_steps):
             while True:
                 try:
@@ -65,6 +70,14 @@ class ToolCallingAgent(Agent):
                     print(e, end="\r")
             next_message = res.choices[0].message.model_dump()
             action = convert_message_to_action(next_message)
+            if action.name == "respond":
+                logger.log_chat(next_message["content"], "Agent Response")
+            else:
+                logger.log_chat(
+                    next_message["tool_calls"][0]["function"]["arguments"],
+                    f"Tool Call : {action.name}",
+                )
+
             env_response = env.step(action)
             reward = env_response.reward
             env_info = {**env_info, **env_response.info.model_dump()}
@@ -81,6 +94,7 @@ class ToolCallingAgent(Agent):
                         },
                     ]
                 )
+                logger.log_chat(env_response.observation, "Tool Response")
             else:
                 messages.extend(
                     [
@@ -88,6 +102,7 @@ class ToolCallingAgent(Agent):
                         {"role": "user", "content": env_response.observation},
                     ]
                 )
+                logger.log_chat(env_response.observation, "User Response")
             if env_response.done:
                 break
 
