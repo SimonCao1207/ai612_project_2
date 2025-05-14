@@ -88,7 +88,6 @@ class Env(object):
         for action in self.actions:
             if action.name == "sql_db_query":
                 last_sql = action
-
         if last_sql:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()

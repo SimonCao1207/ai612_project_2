@@ -53,7 +53,10 @@ def parse_arguments() -> Namespace:
         help="Sampling temperature for the action model",
     )
     parser.add_argument(
-        "--user_model", type=str, default="gpt-4o-mini", help="The user model to use"
+        "--user_model",
+        type=str,
+        default="gemini/gemini-2.0-flash",
+        help="The user model to use",
     )
     parser.add_argument(
         "--user_strategy", type=str, default="llm", help="The user strategy to use"
@@ -153,6 +156,7 @@ def display_metrics(results: List[EnvRunResult]) -> None:
 def update_checkpoint(ckpt_path, result, lock):
     with lock:
         data = []
+        ckpt_path = ckpt_path.replace("gemini/", "")
         if os.path.exists(ckpt_path):
             with open(ckpt_path, "r") as f:
                 data = json.load(f)

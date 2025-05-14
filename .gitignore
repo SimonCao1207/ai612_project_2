@@ -4,7 +4,9 @@ __pycache__/
 *$py.class
 # C extensions
 *.so
+temp_debug_eval.py
 noshare/
+.env
 # Distribution / packaging
 .Python
 build/
