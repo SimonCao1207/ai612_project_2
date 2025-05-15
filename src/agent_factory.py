@@ -19,6 +19,16 @@ def get_agent(
             temperature=temperature,
             rule=rule,
         )
+
+    elif agent_strategy == "tool-calling-v2":
+        from src.agents.tool_calling_agent_v2 import ToolCallingAgentV2
+
+        return ToolCallingAgentV2(
+            tools_info=tools_info,
+            model=model,
+            temperature=temperature,
+            rule=rule,
+        )
     else:
         # TODO: implement your own agent and return it here
         raise ValueError(
