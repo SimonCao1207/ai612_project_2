@@ -13,16 +13,23 @@ logger = Logger()
 
 TOOL_CALLING_INSTRUCTION = """- You are a SQL agent that translates natural language questions into precise SQL queries for electronic health records (EHR).
 - You are currently engaged in a conversation with a user who wants to retrieve data from an EHR database.
-- If the user's request is ambiguous or missing crucial information (e.g., filtering criteria), you must ask clarifying questions in plain language.
+- If the user's request is ambiguous or missing crucial information (e.g., filtering criteria), you must ask clarifying questions in plain language. 
+- If the user ask for confirmation of your answer and you think you have already provided the complete answer, you can ignore and state that I have already provide the answer to end the conversation.
 - You can interact with the database to learn more about its schema or the values stored in it by using the tools provided.
 - Do not invent or fabricate any information not provided by the user or the tools.
 - You should make at most one tool call at a time.
 - If you do call a tool, do not respond to the user in that same turn.
+- Use tool to read the database documentation and get the table description from the database documentation.  
 - Do not generate SQL queries directly without knowing the database schema and values intended to be used in the SQL query by calling substring_search_tool.
-- When the user asks for specific diagnoses, procedures, medications, or lab tests, try your best to use the tool to search for relevant information in the database and determine if it relates to the user's request.
+- When the user asks for specific diagnoses, procedures, medications, or lab tests, try your best to use the tool to search for relevant information in the database and determine if it relates to the user's request.  
 - Only when you have gathered all necessary information from the user or the database, produce a single, valid SQL query that fully reflects the user's request.
+- When you have the SQL query in mind, use sql_db_query tool to execute the SQL query and get the result instead of giving the SQL query to the user since the user does not know SQL at all.
 - Avoid partial or speculative queries that could cause confusion or yield inaccurate results.
 - Your performance is evaluated based on the latest SQL query you generate, so when generating a new SQL query for the user's request, avoid relying on previous results but instead rewrite it from scratch to fully capture the user's intent and ensure it is accurately assessed.
+
+"""
+ASK_FOR_SPECIFIC = """
+Can you please provide more specific information about your request and try to break down the goal if possible?
 """
 
 
@@ -39,6 +46,7 @@ class ToolCallingAgentV2(Agent):
         self.model = model
         self.temperature = temperature
         self.instruction = TOOL_CALLING_INSTRUCTION + "\nRules:\n" + self.rule
+        self.ask_for_sepcific = False
 
     def run(
         self, env: Env, task_index: Optional[int] = None, max_num_steps: int = 30
@@ -55,20 +63,28 @@ class ToolCallingAgentV2(Agent):
 
         logger.log_chat(obs_user, "User request")
         for _ in range(max_num_steps):
-            while True:
-                try:
-                    res = completion(
-                        messages=messages,
-                        model=self.model,
-                        tools=self.tools_info,
-                        temperature=self.temperature,
-                    )
-                    agent_cost += res._hidden_params["response_cost"]
-                    break
-                except Exception as e:
-                    time.sleep(3)
-                    print(e, end="\r")
-            next_message = res.choices[0].message.model_dump()
+            if not self.ask_for_sepcific:
+                next_message = {
+                    "role": "assistant",
+                    "content": ASK_FOR_SPECIFIC,
+                }
+                self.ask_for_sepcific = True
+            else:
+                while True:
+                    try:
+                        res = completion(
+                            messages=messages,
+                            model=self.model,
+                            tools=self.tools_info,
+                            temperature=self.temperature,
+                        )
+                        agent_cost += res._hidden_params["response_cost"]
+                        break
+                    except Exception as e:
+                        time.sleep(3)
+                        print(e, end="\r")
+                next_message = res.choices[0].message.model_dump()
+
             action = convert_message_to_action(next_message)
             if action.name == "respond":
                 logger.log_chat(next_message["content"], "Agent Response")
@@ -77,7 +93,6 @@ class ToolCallingAgentV2(Agent):
                     next_message["tool_calls"][0]["function"]["arguments"],
                     f"Tool Call : {action.name}",
                 )
-
             env_response = env.step(action)
             reward = env_response.reward
             env_info = {**env_info, **env_response.info.model_dump()}
