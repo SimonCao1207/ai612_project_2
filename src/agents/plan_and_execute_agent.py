@@ -1,4 +1,3 @@
-import logging
 import time
 from typing import Any, Dict, List, Optional
 
@@ -6,19 +5,16 @@ from litellm import completion
 
 from src.agents.base import Agent
 from src.envs.base import Env
+from src.log import Logger
 from src.types import AgentRunResult
 from src.utils import convert_message_to_action
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
-# Suppress LiteLLM logs specifically
-logging.getLogger("LiteLLM").setLevel(logging.WARNING)
+logger = Logger()
 
 PLANNER_INSTRUCTION = """
 You are a planning agent. Given a user request, break it down into a numbered list of clear, concrete steps that, if executed in order, will fully accomplish the user's goal. If the request is already simple, you may return a single step. Do not execute any steps yourself.
 If there exists an observeration about previous query attempts, reflect on it to improve the plan.
+If user's request is to reconfirm the previous query, you should not generate a new plan but just return an empty string.
 
 You have access to the following tools:
 - sql_db_list_tables: List all table names in the database.
@@ -55,6 +51,42 @@ class PlanAndExecuteAgent(Agent):
         self.model = model
         self.temperature = temperature
 
+    def _get_plan_from_planner(self, planner_messages):
+        while True:
+            try:
+                res = completion(
+                    messages=planner_messages,
+                    model=self.model,
+                    temperature=self.temperature,
+                )
+                plan_text = res.choices[0].message.content
+                agent_cost = res._hidden_params["response_cost"]
+                if plan_text is not None:
+                    plan = [
+                        line.strip(" .")
+                        for line in plan_text.split("\n")
+                        if line.strip()
+                        and (
+                            line.strip()[0].isdigit() or len(plan_text.split("\n")) == 1
+                        )
+                    ]
+                else:
+                    plan = []
+                return plan, plan_text, agent_cost
+            except Exception as e:
+                time.sleep(10)
+                print(e, end="\r")
+                return [], None, 0.0
+
+    def _execute_action_and_update_env(self, env, action, env_info):
+        """
+        Executes the given action in the environment, updates reward and env_info, and returns env_response, reward, env_info.
+        """
+        env_response = env.step(action)
+        reward = env_response.reward
+        env_info = {**env_info, **env_response.info.model_dump()}
+        return env_response, reward, env_info
+
     def run(
         self, env: Env, task_index: Optional[int] = None, max_num_steps: int = 30
     ) -> AgentRunResult:
@@ -75,7 +107,7 @@ class PlanAndExecuteAgent(Agent):
             {"role": "user", "content": obs_user},
         ]
 
-        logging.info("Starting PlanAndExecuteAgent run for task_index=%s", task_index)
+        logger.log("Starting PlanAndExecuteAgent run for task_index=%s", task_index)
 
         # Step 1: Planning
         planner_messages = [
@@ -86,7 +118,7 @@ class PlanAndExecuteAgent(Agent):
             {"role": "user", "content": obs_user},
         ]
         for _ in range(max_num_steps):
-            logging.info("Planning: requesting plan for user request: %s", obs_user)
+            logger.log_chat(obs_user, "User request")
             if (
                 latest_plan is not None
                 and latest_result is not None
@@ -99,40 +131,35 @@ class PlanAndExecuteAgent(Agent):
                     }
                 )
 
-            num_tries = 0
-            while True:
-                try:
-                    res = completion(
-                        messages=planner_messages,
-                        model=self.model,
-                        temperature=self.temperature,
-                    )
-                    agent_cost += res._hidden_params["response_cost"]
-                    if res.choices[0].message.content is None:
-                        if num_tries >= 3:
-                            print("Max retries reached for planner, breaking...")
-                            break
-                        print("Empty response from planner, retrying...")
-                        num_tries += 1
-                        time.sleep(10)
-                        continue
+            plan, plan_text, planner_cost = self._get_plan_from_planner(
+                planner_messages
+            )
+            agent_cost += planner_cost
+            if len(plan) == 0:
+                logger.log(level="error", message="No Plan generated.")
+                i_am_sure_bitch = "Yes, I am sure with my previous response."
+                action = convert_message_to_action(
+                    {
+                        "role": "assistant",
+                        "content": i_am_sure_bitch,
+                    }
+                )
+                logger.log_chat(i_am_sure_bitch, "Agent Response")
+
+                env_response, reward, env_info = self._execute_action_and_update_env(
+                    env, action, env_info
+                )
+
+                if env_response.done:
+                    logger.log_chat(env_response.content, "User response")
+                    logger.log("Environment signaled done. Exiting.")
+                    done = True
                     break
-                except Exception as e:
-                    time.sleep(10)
-                    print(e, end="\r")
-            plan_text = res.choices[0].message.content
-            if plan_text is None:  # Handle empty response
-                logging.error("Received empty response from planner.")
-                break
-            logging.info("Received plan:\n%s", plan_text)
-            plan = [
-                line.strip(" .")
-                for line in plan_text.split("\n")
-                if line.strip()
-                and (line.strip()[0].isdigit() or len(plan_text.split("\n")) == 1)
-            ]
-            if not plan:
-                plan = [plan_text.strip()]
+                else:
+                    continue
+            else:
+                logger.log_code("Plan", "\n".join(plan))
+
             # Step 2: Execute each step
             executor_messages = [
                 {
@@ -145,8 +172,8 @@ class PlanAndExecuteAgent(Agent):
             for cur_step in range(len(plan) + 1):
                 if cur_step < len(plan):
                     step = plan[cur_step]
-                    logging.info(
-                        "Executing step %d/%d: %s", cur_step + 1, len(plan), step
+                    logger.log_rule(
+                        f"Executing step {cur_step + 1}/{len(plan)}: {step}"
                     )
                     executor_messages.append(
                         {
@@ -169,12 +196,15 @@ class PlanAndExecuteAgent(Agent):
                         print(e, end="\r")
                 next_message = res.choices[0].message.model_dump()
                 action = convert_message_to_action(next_message)
-                env_response = env.step(action)
-                logging.info("Step result: %s", env_response.observation)
-                reward = env_response.reward
-                env_info = {**env_info, **env_response.info.model_dump()}
+                env_response, reward, env_info = self._execute_action_and_update_env(
+                    env, action, env_info
+                )
                 plan_executed.append(step)
                 if action.name != "respond":
+                    logger.log_chat(
+                        next_message["tool_calls"][0]["function"]["arguments"],
+                        f"Tool Call : {action.name}",
+                    )
                     next_message["tool_calls"] = next_message["tool_calls"][:1]
                     new_messages = [
                         next_message,
@@ -189,38 +219,36 @@ class PlanAndExecuteAgent(Agent):
                     messages.extend(new_messages)
                     plan_results.append(env_response.observation)
                 else:
+                    logger.log_chat(next_message["content"], "Agent Response")
                     messages.extend(
                         [
                             next_message,
                             {"role": "user", "content": env_response.observation},
                         ]
                     )
-                    logging.info("User response generated, breaking execution loop.")
+                    logger.log("User response generated, breaking execution loop.")
                     is_user_response = True
                     latest_plan = step
                     latest_result = plan_results[-1]
                     break
 
             if env_response.done:
-                logging.info("Environment signaled done. Exiting.")
+                logger.log("Environment signaled done. Exiting.")
                 done = True
                 break
 
             if is_user_response:
-                # update
                 plan_executed = []
                 plan_results = []
                 obs_user = env_response.observation
-                logging.info(
-                    "Switching back to planner with new user observation: %s", obs_user
-                )
-
-                # go back to planner
+                logger.log("Switching back to planner with new user observation:")
                 continue
 
             # Step 3: Replanning or Respond
             if not done:
-                logging.info("Replanning: steps executed: %s", plan_executed)
+                logger.log_code(
+                    "Replanning: steps executed: %s", "\n".join(plan_executed)
+                )
                 replanner_messages = [
                     {
                         "role": "system",
@@ -245,13 +273,13 @@ class PlanAndExecuteAgent(Agent):
                         time.sleep(10)
                         print(e, end="\r")
                 replanner_reply = res.choices[0].message.content
-                logging.info("Replanner reply: %s", replanner_reply)
+                logger.log_chat(replanner_reply, "Replanner reply")
                 planner_messages.append(
                     {"role": "assistant", "content": replanner_reply}
                 )
             else:
                 messages.extend(executor_messages)
-        logging.info(
+        logger.log(
             "Run complete. Final reward: %s, agent_cost: %s",
             reward,
             round(agent_cost, 8),

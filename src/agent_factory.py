@@ -20,9 +20,9 @@ def get_agent(
             rule=rule,
         )
     elif agent_strategy == "plan-and-execute":
-        from src.agents.plan_and_execute_agent import PlanAndExecuteAgent
+        from src.agents.better_tool_calling_agent import PlanningAgent
 
-        return PlanAndExecuteAgent(
+        return PlanningAgent(
             tools_info=tools_info,
             model=model,
             temperature=temperature,
