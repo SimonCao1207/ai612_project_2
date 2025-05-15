@@ -8,7 +8,7 @@ from sqlalchemy.engine import Engine
 class RetrieveICDCodeByTitle(BaseModel):
     engine: Engine = Field(
         ...,
-        description="Retrieve an ICD code from d_icd_procedures or d_icd_diagnoses by matching a title/subtitle.",
+        description="The engine to retrieve an ICD code from d_icd_procedures or d_icd_diagnoses by matching a title/subtitle.",
     )
 
     class Config:
