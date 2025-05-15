@@ -10,9 +10,9 @@ def get_agent(
     temperature: float = 0.0,
     rule: str = "",
 ) -> Agent:
-
-    if agent_strategy == "tool-calling"
+    if agent_strategy == "tool-calling":
         from src.agents.tool_calling_agent import ToolCallingAgent
+
         return ToolCallingAgent(
             tools_info=tools_info,
             model=model,
