@@ -43,7 +43,7 @@ def parse_arguments() -> Namespace:
         "--agent_strategy",
         type=str,
         required=True,
-        choices=["tool-calling"],
+        choices=["tool-calling", "plan-and-execute"],
         help="The agent strategy to use",
     )
     parser.add_argument(
