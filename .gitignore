@@ -5,6 +5,8 @@ __pycache__/
 # C extensions
 *.so
 temp_debug_eval.py
+grader.py
+results/
 noshare/
 .env
 # Distribution / packaging

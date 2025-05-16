@@ -11,7 +11,7 @@ from litellm import completion
 from src.types import Task
 
 load_dotenv()
-MODEL = "gpt-4o-mini"
+MODEL = "gemini/gemini-2.0-flash"
 
 role_prompt = """Your task is to identify which entity was responsible for the initial mistake that led to the failure of EHR database question answering.
 - The conversation below is between a user and a database agent.

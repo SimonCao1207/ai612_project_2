@@ -1,42 +1,202 @@
 [
     {
-        "task_id": "0",
-        "instruction": "Your goal is to find the gender of a patient. Specifically, you want to know the gender of the patient with ID 10027602."
+        "task_id": "11",
+        "instruction": "Your goal is to identify medications prescribed to a patient following a specific surgery. Specifically, you are interested in patient ID 10016810 and want to know the medications with prescription start times recorded within the same hospital admission as their appendectomy. Due to the nature of the database, prescription start times may be recorded before the surgery, so you want to focus on prescriptions within the same hospital admission record as the appendectomy. If there is no record of an appendectomy for this patient, end the conversation."
     },
     {
-        "task_id": "1",
-        "instruction": "Your goal is to find all the routes of administration for isosorbide dinitrate for patients in the database."
+        "task_id": "12",
+        "instruction": "Your goal is to find information related to a patient's vital signs. Specifically, you are interested in patient ID 10021487 and you want to know when the patient's temperature was last measured during the current admission."
     },
     {
-        "task_id": "2",
-        "instruction": "Your goal is to find the time when two medications were prescribed simultaneously during the most recent hospital visit for a patient. Specifically, you want to know the time when medications containing olanzapine and quetiapine were prescribed together for patient ID 10004422. If there are multiple occassions where both medications were prescribed simultaneously, you want to know the earliest time."
+        "task_id": "15",
+        "instruction": "Your goal is to find how long it has been since a specific lab test was performed. Specifically, you are interested in patient ID 10004733 and want to know how many hours have passed since their last WBC test was conducted."
     },
     {
-        "task_id": "3",
-        "instruction": "Your goal is to track the daily minimum Hb levels for the patient with ID 10003400. Specifically, you want to group the results by date to observe how the minimum Hb levels change each day."
+        "task_id": "19",
+        "instruction": "Your goal is to find the top five most frequently ordered medications alongside a specific drug. Specifically, you want to know which ordered medications have overlapping prescription start times with hydrocortisone most commonly. If there are multiple medications tied for any of the top five ranks, ask to retrieve all of them."
     },
     {
-        "task_id": "4",
-        "instruction": "Your goal is to find when a specific medication was last prescribed to a patient. You are interested in patient ID 10000032 and want to know the lastest time a medication administered via inhalation was given during their last hospital visit."
+        "task_id": "20",
+        "instruction": "Your goal is to find the number of patients diagnosed with two specific conditions. Specifically, you want to know about patients diagnosed with cirrhosis. Among those patients, you want to know how many also received a diagnosis of hepatic encephalopathy in the same hospital admission record."
     },
     {
-        "task_id": "5",
-        "instruction": "Your goal is to find the most frequently performed microbiological tests on patients who underwent a specific procedure this year. The name of the procedure is percutaneous abdominal drainage (PAD). You want to know the top 3 microbiological tests that were conducted within the same month as that procedure. If there is more than one result with the same rank among the top three, ask to retrieve them all."
+        "task_id": "24",
+        "instruction": "Your goal is to find which procedures were conducted for patients at or after the time of a specific diagnosis. Specifically, you want to know the top five most frequently performed procedures within 6 hours of a hospital admission during which patients received a diagnosis containing the term \"atrial fibrillation.\" If there are multiple results tied for the same rank among the top five, you request to retrieve all of them. If a patient received the diagnosis with the same name multiple times, you want to only consider the hospital admission with the first diagnosis. If multiple records of the same procedure name exist in a patient\u2019s hospital admission, you want to count it only once."
     },
     {
-        "task_id": "6",
-        "instruction": "Your goal is to know the length of a patient's hospital stay in days. You are interested in patient ID 10016742 and knowing how days spent in the hospital from admission to discharge. If this patient has multiple hospital admission records, you want to know the lastest admission."
+        "task_id": "29",
+        "instruction": "Your goal is to find all the care units a patient was transferred to during their hospital stay. Specifically, you are interested in patient ID 10027602 and want to know all the care units they were transferred to during their last hospital admission. You are not looking for the emergency room or admission locations, but only the care units they were transferred to."
     },
     {
-        "task_id": "7",
-        "instruction": "Your goal is to identify the top 3 most frequently collected specimen types from patients who received CVC placement. You want both the CVC placement procedure and specimen collection occur during the same hospital admission. If multiple specimen types are tied for the same rank within the top three ranks, retrieve all tied results."
+        "task_id": "30",
+        "instruction": "Your goal is to find the most frequently prescribed medications for a specific patient group. Specifically, you want to identify the top three medications most commonly prescribed to patients aged 60 or older after a COPD diagnosis. When searching for COPD, you want to use the keywords 'chronic obstructive pulmonary', 'obstructive chronic bronchitis', and 'chronic airway obstruction' to identify diagnosis names that include these terms. You want to limit the medication prescriptions to those recorded after the COPD diagnosis within the same hospital admission, based on their prescription start time. If there are multiple medications tied for any of the top 3 ranks, you want to be informed of all of them. If a patient received the diagnosis with the same name multiple times, you want to include only the hospital admission with the first diagnosis in the results. If a patient has multiple records of the same medication name within a single hospital admission, you want to count it only once. If the database contains age information at the time of admission, you want to use that information directly rather than calculating the age."
     },
     {
-        "task_id": "8",
-        "instruction": "Your goal is to check if patient ID 10020786 was diagnosed with COPD in the year 2100. If diagnosed, request the date of first diagnosis. If not diagnosed, end the conversation."
+        "task_id": "32",
+        "instruction": "Your goal is to find information about drug prescriptions. Specifically, you want to know the top 5 most frequently prescribed drugs. If there are multiple drugs tied for the same rank within the top 5, you want to include all of them. If there is at least one result, you want to narrow the results to prescriptions starting this month. If there are no results, you want to end the conversation."
     },
     {
-        "task_id": "9",
-        "instruction": "Your goal is to check whether a specific surgery was performed on a patient. You are interested in patient ID 10014729 and want to know if they underwent a resection. If there is a record of a resection, request all of their surgery times. If no such record exists, end the conversation."
+        "task_id": "33",
+        "instruction": "Your goal is to find the cost of a specific procedure stored in the database. Specifically, you want to know the cost of laparoscopic robot-assisted procedure."
+    },
+    {
+        "task_id": "34",
+        "instruction": "Your goal is to find the specific lab test values for a patient following a particular diagnosis. Specifically, you are interested in patient ID 10037861 and want to know the highest NT-proBNP value measured during the same hospital admission after a heart failure diagnosis."
+    },
+    {
+        "task_id": "39",
+        "instruction": "Your goal is to find the number of times a specific lab test was performed for a patient. Specifically, you are interested in patient ID 10004235 and you want to know how many lactate measurement records exist within 48 hours following the first severe sepsis diagnosis."
+    },
+    {
+        "task_id": "40",
+        "instruction": "Your goal is to find if a specific patient's respiratory rate in the ICU is below a certain level. Specifically, you are interested in respiratory rates measured yesterday and today, and you want to check if any measurements were recorded as 12 or lower. If such records exist, ask to provide the list of such patients. If not, end the conversation."
+    },
+    {
+        "task_id": "41",
+        "instruction": "Your goal is to find one body measurement for a currently admitted patient. Specifically, you are interested in patient ID 10021487 and you want to know the patient\u2019s height."
+    },
+    {
+        "task_id": "42",
+        "instruction": "Your goal is to find the number of patients who underwent specific procedures. Specifically, you want to know how many patients received both a colonoscopy and an EGD during the same hospital admission."
+    },
+    {
+        "task_id": "46",
+        "instruction": "Your goal is to find the lab test results for a specific patient. You are interested in patient ID 10008287 and you want to know the platelet values recorded during their most recent hospital admission. If no records are found, you want to end the conversation."
+    },
+    {
+        "task_id": "49",
+        "instruction": "Your goal is to find information related to patient admissions. Specifically, you are interested in patient ID 10004422 and you want to know the admission type for their most recent hospital visit."
+    },
+    {
+        "task_id": "52",
+        "instruction": "Your goal is to find the vital information of a specific patient. Specifically, you are interested in patient ID 10004733 and you want to know the daily average respiratory rate during the current hospital visit. You want to see the results for yesterday and today."
+    },
+    {
+        "task_id": "56",
+        "instruction": "Your goal is to find data related to patient admissions. Specifically, you want to know the average age of patients admitted to the hospital. If the database contains the age at admission, you want to retrieve that information directly without calculating it. You want to limit the range of the final patient data to this month. If the database contains age information at the time of admission, you want to use that information directly rather than calculating the age."
+    },
+    {
+        "task_id": "57",
+        "instruction": "Your goal is to find patients who underwent a specific test. Specifically, you want to identify patients diagnosed with diabetes in the past 6 months and determine how many times they did not have an HbA1c test recorded in the same hospital records. You are okay with counting duplicate patients."
+    },
+    {
+        "task_id": "63",
+        "instruction": "Your goal is to find cases where a patient was diagnosed with a specific condition and has a record of a specific medication being ordered. Specifically, you want to know how many hospital admissions there are where a patient was diagnosed with a urinary tract infection and, in the same hospital record, has a prescription record for ciprofloxacin after the diagnosis. You are fine with counting the same patient multiple times."
+    },
+    {
+        "task_id": "65",
+        "instruction": "Your goal is to find the number of patients who received a specific medication order after a particular procedure. Specifically, you want to know how many patients who underwent cardiac stent insertion had clopidogrel ordered during the same hospital admission. Since the database may record prescriptions before procedure, you want to focus on prescriptions within the same admission as the procedure."
+    },
+    {
+        "task_id": "68",
+        "instruction": "Your goal is to find lab test information related to patients with a specific diagnosis. Specifically, you are interested in patients diagnosed with acute alcoholic hepatitis, and you want to know the top three most frequently performed lab test names in the same hospital record. If there are multiple results tied for the same rank, you want to retrieve all of them. If a patient received the same diagnosis multiple times, you want to include only the hospital admission with the first diagnosis in the results. If a patient received the same lab test multiple times in a hospital admission record, you want to count it only once."
+    },
+    {
+        "task_id": "69",
+        "instruction": "Your goal is to find information about patients who received a diagnosis. Specifically, you want to know the number of unique patients who had a diagnosis associated with a highway accident."
+    },
+    {
+        "task_id": "74",
+        "instruction": "Your goal is to find prescrption-related cost information. Specifically, you want to know the total cost of the five most frequently ordered medications for patients this year. If there are multiple medication orders tied for the same rank within the top five, you request that all be included. You want the total cost, not the amount spent on each medication."
+    },
+    {
+        "task_id": "75",
+        "instruction": "Your goal is to find the medications prescribed to a patient. You are interested in patient ID 10001725 and you want to know all medications ordered within the same hospital admission record following an anaphylactics diagnosis during a hospital visit in April this year."
+    },
+    {
+        "task_id": "81",
+        "instruction": "Your goal is to find information about patients' output records. Specifically, you want the hadm_id of patients who had a daily I/O of +500 or more at least once this month."
+    },
+    {
+        "task_id": "83",
+        "instruction": "Your goal is to find information related to patient lab tests. Specifically, you are interested in patient ID 10022017 and you want to know which lab tests were performed on the day of hospital discharge in October this year. You are referring to the discharge date, not the discharge time."
+    },
+    {
+        "task_id": "87",
+        "instruction": "Your goal is to find cost-related information for a specific patient. Specifically, you are interested in patient ID 10000032 and you want to know the average total cost incurred from each hospital admission for this patient."
+    },
+    {
+        "task_id": "91",
+        "instruction": "Your goal is to find information related to a patient\u2019s intake record. Specifically, you are interested in patient ID 10004733 and you want to know the most recent intake administration time from yesterday."
+    },
+    {
+        "task_id": "93",
+        "instruction": "Your goal is to find emergency room-related statistics. Specifically, you want to know the top five diagnoses received by patients admitted through the emergency room. If there are multiple diagnoses tied for the same rank within the top five, you want all of them reported. You want to count each admission through the emergency room independently, even if a patient was admitted multiple times."
+    },
+    {
+        "task_id": "94",
+        "instruction": "Your goal is to find medication information related to a patient\u2019s prescription. Specifically, you are interested in patient ID 10025463, and you want to know which medications were recorded as starting on the hospital discharge date in November of this year. You are referring to the discharge date, not the discharge time."
+    },
+    {
+        "task_id": "97",
+        "instruction": "Your goal is to find information related to a specific patient\u2019s vital signs over time. Specifically, you are interested in patient ID 10021487 and you want to know the last time during this hospital admission when the mean BP was 65mmHg or lower."
+    },
+    {
+        "task_id": "99",
+        "instruction": "Your goal is to find the Net I&O information for a patient. Specifically, you are interested in patient ID 10004733 and you want to know the daily Net I/O for the current hospitalization period. You want the final value to be calculated as the daily input amount minus the output amount."
+    },
+    {
+        "task_id": "101",
+        "instruction": "Your goal is to find information related to input events. Specifically, you want to know, for patients diagnosed with myocardial infarction, if there are days during the same hospital admission when they received heparin or nitroglycerin. You want to calculate the daily average of the total dose administered for each drug. You want to assume and calculate the dose in ml for each drug. You want the average values presented in alphabetical order: heparin first, then nitroglycerin."
+    },
+    {
+        "task_id": "102",
+        "instruction": "Your goal is to determine whether a specific lab test was performed for a particular patient. Specifically, you want to check if patient ID 10031757 underwent an ALT test. If the test was performed, ask to indicate the time of the most recent test. If no test was performed, end the conversation."
+    },
+    {
+        "task_id": "103",
+        "instruction": "Your goal is to find statistics related to medical procedures. Specifically, you want to know the total number of patients who underwent a spinal tap. You want to order the results initially, and ultimately, you want the results limited to patients who underwent the procedure in the last six months."
+    },
+    {
+        "task_id": "108",
+        "instruction": "Your goal is to find information related to patient lab tests. Specifically, you are interested in patient ID 10002495 and you want to know the names of all lab tests conducted during the June hospital admission. You want to initially request the results and ultimately know the results limited to the tests performed on the day of that hospital admission."
+    },
+    {
+        "task_id": "110",
+        "instruction": "Your goal is to find information related to a patient\u2019s diagnosis. Specifically, you are interested in patient ID 10004733 and you want to know how many days have passed since the patient was diagnosed with cerebral artery occlusion during the current hospital admission. If the patient has multiple records of the same diagnosis, you want to know the number of days elapsed since the earliest diagnosis."
+    },
+    {
+        "task_id": "114",
+        "instruction": "Your goal is to find information related to new prescriptions for a patient. You are interested in patient ID 10004733 and you want to know which medications, if any, have a new prescription order started today compared to yesterday."
+    },
+    {
+        "task_id": "120",
+        "instruction": "Your goal is to find sudden changes in patients' vital signs. Specifically, you want to identify the hadm_id of patients whose body temperature increased by 1\u00b0C or more within a 1-hour period during their hospital stay."
+    },
+    {
+        "task_id": "122",
+        "instruction": "Your goal is to find information related to patient admissions. Specifically, you are interested in patient ID 10000032 and want to know how many times they were admitted to the hospital in August of this year."
+    },
+    {
+        "task_id": "123",
+        "instruction": "Your goal is to find statistics related to patient readmissions. Specifically, you want to know the number of patients diagnosed with congestive heart failure who were readmitted to the hospital within 30 days of discharge."
+    },
+    {
+        "task_id": "128",
+        "instruction": "Your goal is to find information related to microbiology tests. Specifically, you are interested in patient ID 10021312 and want to know the name of the microbiology test that was first conducted differently during their last hospital admission compared to previous admissions."
+    },
+    {
+        "task_id": "129",
+        "instruction": "Your goal is to find statistics related to patient procedures. Specifically, you want to know what percentage of all procedures the top five most frequently performed procedures account for during hospital admissions. If there are multiple procedures tied for the same rank within the top five, you want to include all of them in the calculation. You want the final result expressed as a percentage."
+    },
+    {
+        "task_id": "131",
+        "instruction": "Your goal is to find patient statistics related to input events. Specifically, you want to identify the hadm_id for patients whose daily total norepinephrine dosage exceeds the average by 50% or more. You are fine with counting patients multiple times in the results."
+    },
+    {
+        "task_id": "134",
+        "instruction": "Your goal is to find patients prescribed certain medications. Specifically, you want patients prescribed atorvastatin, rosuvastatin, or simvastatin. If relevant patient records exist, request the number of patients prescribed any of these medications at least once this month. If no such patients are found, end the conversation."
+    },
+    {
+        "task_id": "139",
+        "instruction": "Your goal is to find patient vital sign information. Specifically, you are interested in patient ID 10004733 and want to know their maximum heart rate during yesterday and today."
+    },
+    {
+        "task_id": "141",
+        "instruction": "Your goal is to find diagnostic statistics related to readmissions. Specifically, you want to know the most common new diagnosis, different from the previous admission, among patients readmitted within 30 days of hospital discharge. If multiple diagnoses are equally common, you want to know all of them. If a patient has multiple hospital readmissions within 30 days, you want each diagnosis to be counted only once per patient."
+    },
+    {
+        "task_id": "144",
+        "instruction": "Your goal is to find cost-related information for patients meeting specific criteria. Specifically, you want to know the average total cost incurred during the hospital stay for patients transferred to the CVICU. If a patient visited the CVICU multiple times, you want to include only the hospital stay associated with their first CVICU visit in the results."
     }
 ]

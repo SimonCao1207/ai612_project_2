@@ -106,9 +106,15 @@ class Env(object):
                     else:
                         converted_pred_sql_answer = list(zip(*pred_sql_answer))
                         for i in range(len(converted_pred_sql_answer)):
-                            if sorted(set(converted_pred_sql_answer[i])) == sorted(
-                                set([el[0] for el in gold_answer])
-                            ):
+                            if sorted(
+                                set(
+                                    [
+                                        r
+                                        for r in converted_pred_sql_answer[i]
+                                        if r != "None"
+                                    ]
+                                )
+                            ) == sorted(set([el[0] for el in gold_answer])):
                                 reward = 1.0
                                 break
             except sqlite3.Error:

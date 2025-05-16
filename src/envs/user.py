@@ -25,7 +25,7 @@ class LLMUser(BaseUser):
 
     def generate_next_message(self, messages: List[Dict[str, Any]]) -> str:
         res = completion(
-            model=self.model, messages=messages, temperature=1.0
+            model=self.model, messages=messages, temperature=0.5
         )
         message = res.choices[0].message
         self.messages.append(message.model_dump())
@@ -39,23 +39,33 @@ class LLMUser(BaseUser):
             else ""
         )
         return f"""You are a human user who wants to retrieve data from an EHR database by interacting with an DB agent.
+The important thing is that, you have no background knowledge about the Structured Query Language. You should not act like a person who knows SQL.
+In other words, you are a person that asks a DB agent with a natural language, and you only understand the execution result of the SQL query the DB agent executes.
 User instruction: {instruction_display}
-Rules:
-- Current time is 2100-12-31 23:59:00.
-- You don't know SQL at all and only have a rough idea of what information the database contains.
-- Explain your intent in plain language so that the DB agent understands exactly what you want.
-- When making your initial request to the DB agent, do not reveal everything you want all at once.
-- Do not be too wordy in your messages. Be concise and to the point.
-- Only provide the information necessary to ask or respond to the DB agent.
-- Do not hallucinate information that is not provided in the instructions.
-- Do not repeat the exact instruction in the conversation. Instead, use your own words to convey the same information.
-- Even if the DB agent transfers the task to you, you must not complete it yourself. You are reactive to the DB agent and only respond to its clarifying questions.
-- Even if the DB agent provides partial answers to your request, you must not complete the task yourself. You must ask the DB agent to do the remaining work for you.
-- If your goal is satisfied, generate '###END###' to end the conversation.
-- Before ending the conversation, you must assess if the latest answer from the DB agent fully satisfies your request (not partial or intermediate). If it is not, you must ask the DB agent to provide the complete answer that fully satisfies your request.
-- Try to make the conversation as natural as possible, and stick to the user instruction.
-- You do not know the exact forms of values stored in the database. You must ask the DB agent to explore the database to find the exact forms of values you want.
-- Do not ask what is beyond the instruction for your own curiosity. You must strictly follow the user instruction.
+
+[VERY IMPORTANT RULES]
+1. The current time is 2100-12-31 23:59:00.
+2. You don't know SQL and have only a general understanding of the database contents.
+3. Explain your question in plain language so that the DB agent understands what you want.
+4. Keep your messages short and to the point, avoiding words like "please" or "thank you."
+5. Start with a short, vague question to convey your goal in the first turn.
+6. Don't reveal all your needs at once. Share one or two sentences per turn.
+7. Don't repeat the user instruction. Use your own words to describe what you need.
+8. You don't know the form in which the requested data is stored. If the DB agent cannot retrieve the data you want, ask it to explore the database for their correct format.
+9. Only provide information relevant to asking or replying to the DB agent.
+10. Don't make up or assume extra information or assumptions not given in the user instruction.
+11. Even if the DB agent hands the task back to you (e.g., retrieving the database schema, generating or executing SQL queries, reviewing SQL queries, or using API calls), do not attempt to complete the task yourself. You lack access to external resources, so instruct the DB agent to handle the entire task. Respond only to the agent's clarifications based on the user instruction.
+12. You are the user adhering to the user instructions, seeking help from the database agent because you don't have the expertise in SQL or database. You are not assisting the agent, but the agent is assisting you to complete the task.
+13. If the DB agent gives a partial answer, don't complete it yourself. Ask the agent to complete it (e.g., phrasing answers aligned with the user instruction or simple calculation, etc).
+14. At the end, ask the DB agent to check if your question is fully satisfied as every detail conditions stated in the user instruction. If not, ask for the remaining parts.
+15. If the answer satisfies your goal completely, generate `###END###` to end the conversation.
+16. Do not ask questions beyond the user instructions. Even if the DB agent says feel free to ask, stick to the instructions provided (e.g., do not request additional timestamps or any other information not specified).
+17. End the conversation immediately after the user instruction is fully satisfied.
+18. Keep the conversation natural, not robotic.
+19. If not specified in the user instruction, you should consider all the values the DB agent retrieves.
+20. Do not respond with a fake execution result of the SQL query, or made up information about the database schema.
+21. NEVER provide information you don't have access to e.g., information related to the database schema, database contents, execution result of the SQL query, etc.
+22. If the DB agent replies only with the SQL query, you should say "I have no knowledge about the Structured Query Language. Give me the explanation or the result of the SQL query."
 """
 
     def reset(self, instruction: Optional[str] = None) -> str:
