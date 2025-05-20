@@ -67,7 +67,7 @@
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/diagnoses_icd/",
                 "columns": {
                         "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
-                        "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
+                        "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "icd_code": "icd_code is the International Coding Definitions (ICD) code."
                 },
                 "links to": {
@@ -81,7 +81,7 @@
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/labevents/",
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
-                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "itemid": "An identifier which uniquely denotes laboratory concepts.",
                     "charttime": "The time at which the laboratory measurement was charted. This is usually the time at which the specimen was acquired, and is usually significantly earlier than the time at which the measurement is available.",
                     "valuenum": "The result of the laboratory measurement and, if it is numeric, the value cast as a numeric data type.",
@@ -98,7 +98,7 @@
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/microbiologyevents/",
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
-                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "charttime": "charttime records the time at which an observation was charted, and is usually the closest proxy to the time the data was actually measured.",
                     "spec_type_desc": "The specimen which is tested for bacterial growth.\nThe specimen is a sample derived from a patient; e.g. blood, urine, sputum, etc.",
                     "test_name": "The test performed on the given specimen.",
@@ -121,7 +121,7 @@
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/prescriptions/",
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
-                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "starttime": "The prescribed start time for the medication.",
                     "stoptime": "The prescribed stop time for the medication.",
                     "drug": "A free-text description of the medication administered.",
@@ -143,7 +143,7 @@
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/procedures_icd/",
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
-                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "icd_code": "icd_code is the International Coding Definitions (ICD) code."
                 },
                 "links to": {
@@ -156,8 +156,8 @@
                 "description": "Physical locations for patients throughout their hospital stay.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/transfers/",
                 "columns": {
-                    "subject_id": "subject_id is unique to a patient",
-                    "hadm_id": "hadm_id is unique to a patient hospital stay",
+                    "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "transfer_id": "transfer_id is unique to a patient physical location.",
                     "eventtype": "eventtype describes what transfer event occurred: 'ed' for an emergency department stay, 'admit' for an admission to the hospital, 'transfer' for an intra-hospital transfer and 'discharge' for a discharge from the hospital.",
                     "careunit": "The type of unit or ward in which the patient is physically located. Examples of care units include medical ICUs, surgical ICUs, medical wards, new baby nurseries, and so on.",
@@ -209,7 +209,9 @@
                 "description": "chartevents contains all the charted data available for a patient. During their ICU stay, the primary repository of a patient's information is their electronic chart. The electronic chart displays patients' routine vital signs and any additional information relevant to their care: ventilator settings, laboratory values, code status, mental status, and so on. As a result, the bulk of information about a patient's stay is contained in chartevents. Furthermore, even though laboratory values are captured elsewhere (labevents), they are frequently repeated within chartevents. This occurs because it is desirable to display the laboratory values on the patient's electronic chart, and so the values are copied from the database storing laboratory values to the database storing the chartevents.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/icu/chartevents/",
                 "columns": {
-                    "subject_id, hadm_id, stay_id": "Identifiers which specify the patient: subject_id is unique to a patient, hadm_id is unique to a patient hospital stay and stay_id is unique to a patient ward stay.",
+                    "stay_id": "stay_id is unique to a patient ward stay.",
+                    "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "charttime": "charttime records the time at which an observation was made, and is usually the closest proxy to the time the data was actually measured.",
                     "itemid": "Identifier for a single measurement type in the database. Each row associated with one itemid (e.g. 220045) corresponds to an instantiation of the same measurement (e.g. heart rate).",
                     "valuenum": "value contains the value measured for the concept identified by the itemid. If this value is numeric, then valuenum contains the same data in a numeric format. If this data is not numeric, valuenum is null. In some cases (e.g. scores like Glasgow Coma Scale, Richmond Sedation Agitation Scale and Code Status), valuenum contains the score and value contains the score and text describing the meaning of the score.",
@@ -234,7 +236,9 @@
                 "description": "Tracking information for ICU stays including admission and discharge times.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/icu/icustays/",
                 "columns": {
-                    "subject_id, hadm_id, stay_id": "Identifiers which specify the patient: subject_id is unique to a patient, hadm_id is unique to a patient hospital stay and stay_id is unique to a patient ward stay.",
+                    "stay_id": "stay_id is unique to a patient ward stay.",
+                    "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "first_careunit": "first_careunit contain the first ICU type in which the patient was cared for. As an stay_id groups all ICU admissions within 24 hours of each other, it is possible for a patient to be transferred from one type of ICU to another and have the same stay_id.. Care units are derived from the TRANSFERS table, and definition for the abbreviations can be found in the documentation for TRANSFERS.",
                     "last_careunit": "last_careunit is the last ICU type in which the patient was cared for.",
                     "intime": "intime provides the date and time the patient was transferred into the ICU.",
@@ -253,7 +257,9 @@
                 "description": "Information documented regarding continuous infusions or intermittent administrations.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/icu/inputevents/",
                 "columns": {
-                    "subject_id, hadm_id, stay_id": "Identifiers which specify the patient: subject_id is unique to a patient, hadm_id is unique to a patient hospital stay and stay_id is unique to a patient ward stay.",
+                    "stay_id": "stay_id is unique to a patient ward stay.",
+                    "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "starttime": "starttime records the start time of an input/output event.",
                     "itemid": "Identifier for a single measurement type in the database. Each row associated with one itemid which corresponds to an instantiation of the same measurement (e.g. norepinephrine).",
                     "totalamount, totalamountuom": "Intravenous administrations are usually given by hanging a bag of fluid at the bedside for continuous infusion over a certain period of time. These columns list the total amount of the fluid in the bag containing the solution."
@@ -277,7 +283,9 @@
                 "description": "Information regarding patient outputs including urine, drainage, and so on.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/icu/outputevents/",
                 "columns": {
-                    "subject_id, hadm_id, stay_id": "Identifiers which specify the patient: subject_id is unique to a patient, hadm_id is unique to a patient hospital stay and stay_id is unique to a patient ICU stay.",
+                    "stay_id": "stay_id is unique to a patient ward stay.",
+                    "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
+                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
                     "charttime": "charttime is the time of an output event.",
                     "itemid": "Identifier for a single measurement type in the database. Each row associated with one itemid (e.g. 212) corresponds to an instantiation of the same measurement (e.g. heart rate).",
                     "value, valueuom": "value and valueuom list the amount of a substance at the charttime (when the exact start time is unknown, but usually up to an hour before)."
