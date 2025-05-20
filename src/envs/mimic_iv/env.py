@@ -1,12 +1,10 @@
 import json
 import os
 
-# TODO: import your own tools here
 from sqlalchemy import create_engine
 
 from src.envs.base import Env
 from src.envs.mimic_iv.tools.get_icd_code_by_title import RetrieveICDCodeByTitle
-from src.envs.mimic_iv.tools.get_table_description import TableDescription
 from src.envs.mimic_iv.tools.sql_db_list_tables import SqlDbListTables
 from src.envs.mimic_iv.tools.sql_db_query import SqlDbQuery
 from src.envs.mimic_iv.tools.sql_db_schema import SqlDbSchema
@@ -32,14 +30,13 @@ class MimicIVEnv(Env):
             rule = f.read()
         engine = create_engine(f"sqlite:///{db_path}")
         documentation_path = "./mimic_iv_schema.json"
+        with open(documentation_path, "r") as file:
+            documentation = json.load(file)
         sql_db_list_tables = SqlDbListTables(engine=engine)
-        sql_db_schema = SqlDbSchema(engine=engine)
+        sql_db_schema = SqlDbSchema(engine=engine, documentation=documentation)
         sql_db_query = SqlDbQuery(engine=engine)
         value_substring_search = ValueSubstringSearch(engine=engine)
         get_icd_code_by_title = RetrieveICDCodeByTitle(engine=engine)
-        get_table_description = TableDescription.from_file(
-            documentation_path=documentation_path
-        )
 
         super().__init__(
             tools=[
@@ -48,8 +45,6 @@ class MimicIVEnv(Env):
                 value_substring_search,
                 sql_db_query,
                 get_icd_code_by_title,
-                get_table_description,
-                # TODO: add your own tools here
             ],  # type: ignore
             tasks=tasks,
             user_strategy=user_strategy,

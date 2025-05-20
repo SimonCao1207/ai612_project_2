@@ -15,7 +15,8 @@
                     "discharge_location": "discharge_location is the disposition of the patient after they are discharged from the hospital.",
                     "insurance": "Type of insurance coverage at the time of hospital admission (e.g., Medicare, Private). This information may vary between hospital stays.",
                     "language": "Primary language spoken by the patient during the hospital admission. This information may vary between hospital stays.",
-                    "marital_status": "Patient's marital status documented at the time of admission (e.g., Married, Single). This information may vary between hospital stays."
+                    "marital_status": "Patient's marital status documented at the time of admission (e.g., Married, Single). This information may vary between hospital stays.",
+                    "age" : "age is the age of the patient at the time of admission. This is calculated from the date of birth (dob) in the PATIENTS table and the date of admission (admittime) in this table."
                 },
                 "links to": {
                     "patients": [
@@ -107,10 +108,11 @@
                 "links to": {}
             },
             "patients": {
-                "description": "Information that is consistent for the lifetime of a patient is stored in this table.",
+                "description": "Patients' gender, date of birth, and date of death if information exists. Information that is consistent for the lifetime of a patient is stored in this table.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/patients/",
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual. As subject_id is the primary key for the table, it is unique for each row.",
+                    "dob": "dob is the date of birth for the patient. The date of birth is stored in the format YYYY-MM-DD 00:00:00.",
                     "gender": "gender is the genotypical sex of the patient.",
                     "dod": "The de-identified date of death for the patient."
                 },
@@ -129,14 +131,7 @@
                     "dose_unit_rx": "The unit of measurement for the dose.",
                     "route": "The route of administration for the medication."
                 },
-                "links to": {
-                    "pharmacy": [
-                        "pharmacy_id"
-                    ],
-                    "emar": [
-                        "pharmacy_id"
-                    ]
-                }
+                "links to": {}
             },
             "procedures_icd": {
                 "description": "During routine hospital care, patients are billed by the hospital for procedures they undergo.\nThis table contains a record of all procedures a patient was billed for during their hospital stay using the ICD-9 and ICD-10 ontologies.",
@@ -144,7 +139,8 @@
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
                     "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization. hadm_id represents a single patient's admission to the hospital. hadm_id ranges from 2000000 - 2999999.",
-                    "icd_code": "icd_code is the International Coding Definitions (ICD) code."
+                    "icd_code": "icd_code is the International Coding Definitions (ICD) code.",
+                    "charttime": "charttime records the time of associated procedures It is formatted as YYYY-MM-DD HH:MM:SS."
                 },
                 "links to": {
                     "d_icd_procedures": [
@@ -153,7 +149,7 @@
                 }
             },
             "transfers": {
-                "description": "Physical locations for patients throughout their hospital stay.",
+                "description": "Physical locations for patients throughout their hospital stay. The icustays table is derived from this table.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/transfers/",
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
@@ -179,7 +175,7 @@
         "description": "The ICU module contains information collected from the clinical information system used within the ICU. Documented data includes intravenous administrations, ventilator settings, and other charted items.",
         "tables": {
             "d_items": {
-                "description": "Table source: Metavision ICU databases.",
+                "description": "The D_ITEMS table defines itemid, which represents measurements in the database. Measurements of the same type (e.g. heart rate) will have the same itemid (e.g. 220045). Values in the itemid column are unique to each row. All itemids will have a value > 220000.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/icu/d_items/",
                 "columns": {
                     "itemid": "As an alternate primary key to the table, itemid is unique to each row.",
