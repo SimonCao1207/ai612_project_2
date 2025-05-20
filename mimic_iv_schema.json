@@ -27,7 +27,7 @@
                 "description": "This table defines International Classification of Diseases (ICD) Version 9 and 10 codes for diagnoses. These codes are assigned at the end of the patient's stay and are used by the hospital to bill for care provided.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/d_icd_diagnoses/",
                 "columns": {
-                    "icd_code": "icd_code is the International Coding Definitions (ICD) code. There are two versions for this coding system: version 9 (ICD-9) and version 10 (ICD-10). \nIn general, ICD-10 codes are more detailed, though code mappings (or \"cross-walks\") exist which convert ICD-9 codes to ICD-10 codes.. Both ICD-9 and ICD-10 codes are often presented with a decimal. This decimal is not required for interpretation of an ICD code; i.e. the icd_code of '0010' is equivalent to '001.0'. ICD-9 and ICD-10 codes have distinct formats: ICD-9 codes are 5 character long strings which are entirely numeric (with the exception of codes prefixed with \"E\" or \"V\" which are used for external causes of injury or supplemental classification). Importantly, ICD-9 codes are retained as strings in the database as the leading 0s in codes are meaningful. ICD-10 codes are 3-7 characters long and always prefixed by a letter followed by a set of numeric values.",
+                    "icd_code": "icd_code is the International Coding Definitions (ICD) code.",
                     "long_title": "The long_title provides the meaning of the ICD code. For example, the ICD-9 code 0010 has long_title \"Cholera due to vibrio cholerae\"."
                 },
                 "links to": {
@@ -40,7 +40,7 @@
                 "description": "This table defines International Classification of Diseases (ICD) codes for procedures. These codes are assigned at the end of the patient's stay and are used by the hospital to bill for care provided. They can further be used to identify if certain procedures have been performed (e.g. surgery).",
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/d_icd_procedures/",
                 "columns": {
-                    "icd_code": "icd_code is the International Coding Definitions (ICD) code. There are two versions for this coding system: version 9 (ICD-9) and version 10 (ICD-10). \nIn general, ICD-10 codes are more detailed, though code mappings (or \"cross-walks\") exist which convert ICD-9 codes to ICD-10 codes. Both ICD-9 and ICD-10 codes are often presented with a decimal. This decimal is not required for interpretation of an ICD code; i.e. the icd_code of '0010' is equivalent to '001.0'.",
+                    "icd_code": "icd_code is the International Coding Definitions (ICD) code.",
                     "long_title": "The title fields provide a brief definition for the given procedure code in ``."
                 },
                 "links to": {
@@ -66,9 +66,9 @@
                 "description": "During routine hospital care, patients are billed by the hospital for diagnoses associated with their hospital stay.\nThis table contains a record of all diagnoses a patient was billed for during their hospital stay using the ICD-9 and ICD-10 ontologies.\nDiagnoses are billed on hospital discharge, and are determined by trained persons who read signed clinical notes.",
                 "link": "https://mimic.mit.edu/docs/iv/modules/hosp/diagnoses_icd/",
                 "columns": {
-                    "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
-                    "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
-                    "icd_code": "icd_code is the International Coding Definitions (ICD) code. There are two versions for this coding system: version 9 (ICD-9) and version 10 (ICD-10). \nIn general, ICD-10 codes are more detailed, though code mappings (or \"cross-walks\") exist which convert ICD-9 codes to ICD-10 codes. Both ICD-9 and ICD-10 codes are often presented with a decimal. This decimal is not required for interpretation of an ICD code; i.e. the icd_code of '0010' is equivalent to '001.0'.",
+                        "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
+                        "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
+                    "icd_code": "icd_code is the International Coding Definitions (ICD) code."
                 },
                 "links to": {
                     "d_icd_diagnoses": [
@@ -99,7 +99,7 @@
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
                     "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
-                    "charttime": "charttime records the time at which an observation was charted, and is usually the closest proxy to the time the data was actually measured.\nchartdate is the same as charttime, except there is no time available.. chartdate was included as time information is not always available for microbiology measurements: in order to be clear about when this occurs, charttime is null, and chartdate contains the date of the measurement.. In the cases where both charttime and chartdate exists, chartdate is equal to a truncated version of charttime (i.e. charttime without the timing information). Not all observations have a charttime, but all observations have a chartdate.",
+                    "charttime": "charttime records the time at which an observation was charted, and is usually the closest proxy to the time the data was actually measured.",
                     "spec_type_desc": "The specimen which is tested for bacterial growth.\nThe specimen is a sample derived from a patient; e.g. blood, urine, sputum, etc.",
                     "test_name": "The test performed on the given specimen.",
                     "org_name": "The organism, if any, which grew when tested. If NULL, no organism grew (i.e. a negative culture)."
@@ -112,7 +112,7 @@
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual. As subject_id is the primary key for the table, it is unique for each row.",
                     "gender": "gender is the genotypical sex of the patient.",
-                    "dod": "The de-identified date of death for the patient. Date of death is extracted from two sources: the hospital information system and the Massachusetts State Registry of Vital Records and Statistics.\nIndividual patient records from MIMIC were matched to the vital records using a custom algorithm based on identifiers including name, social security number, and date of birth.. As a result of the linkage, out of hospital mortality is available for MIMIC-IV patients up to one year post-hospital discharge. All patient deaths occurring more than one year after hospital discharge are censored.\nSurvival studies should incorporate this into their design."
+                    "dod": "The de-identified date of death for the patient."
                 },
                 "links to": {}
             },
@@ -144,7 +144,7 @@
                 "columns": {
                     "subject_id": "subject_id is a unique identifier which specifies an individual patient. Any rows associated with a single subject_id pertain to the same individual.",
                     "hadm_id": "hadm_id is an integer identifier which is unique for each patient hospitalization.",
-                    "icd_code": "icd_code is the International Coding Definitions (ICD) code. There are two versions for this coding system: version 9 (ICD-9) and version 10 (ICD-10). \nIn general, ICD-10 codes are more detailed, though code mappings (or \"cross-walks\") exist which convert ICD-9 codes to ICD-10 codes. Both ICD-9 and ICD-10 codes are often presented with a decimal. This decimal is not required for interpretation of an ICD code; i.e. the icd_code of '0010' is equivalent to '001.0'."
+                    "icd_code": "icd_code is the International Coding Definitions (ICD) code."
                 },
                 "links to": {
                     "d_icd_procedures": [
@@ -247,6 +247,7 @@
                     "admissions": [
                         "hadm_id"
                     ]
+                }
             },
             "inputevents": {
                 "description": "Information documented regarding continuous infusions or intermittent administrations.",
@@ -255,7 +256,7 @@
                     "subject_id, hadm_id, stay_id": "Identifiers which specify the patient: subject_id is unique to a patient, hadm_id is unique to a patient hospital stay and stay_id is unique to a patient ward stay.",
                     "starttime": "starttime records the start time of an input/output event.",
                     "itemid": "Identifier for a single measurement type in the database. Each row associated with one itemid which corresponds to an instantiation of the same measurement (e.g. norepinephrine).",
-                    "totalamount, totalamountuom": "Intravenous administrations are usually given by hanging a bag of fluid at the bedside for continuous infusion over a certain period of time. These columns list the total amount of the fluid in the bag containing the solution.",
+                    "totalamount, totalamountuom": "Intravenous administrations are usually given by hanging a bag of fluid at the bedside for continuous infusion over a certain period of time. These columns list the total amount of the fluid in the bag containing the solution."
                 },
                 "links to": {
                     "patients": [
