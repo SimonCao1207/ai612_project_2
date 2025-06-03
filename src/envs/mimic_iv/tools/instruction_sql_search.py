@@ -30,7 +30,7 @@ class RAG(BaseModel):
             "type": "function",
             "function": {
                 "name": "instruction_sql_search",
-                "description": "extract samples similar to the given instruction and then refers to them.",
+                "description": "extract samples similar to the given instruction for reference",
                 "parameters": {
                     "type": "object",
                     "properties": {

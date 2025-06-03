@@ -18,6 +18,7 @@ TOOL_CALLING_INSTRUCTION = """- You are a SQL agent that translates natural lang
 - Do not invent or fabricate any information not provided by the user or the tools.
 - You should make at most one tool call at a time.
 - If you do call a tool, do not respond to the user in that same turn.
+- Before generating any SQL query, you must use the tool `instruction_sql_search` to extract samples similar to the user request for reference. Carefully review the retrieved samples and use them to guide your SQL generation.
 - Do not generate SQL queries directly without knowing the database schema and values intended to be used in the SQL query by calling substring_search_tool.
 - When the user asks for specific diagnoses, procedures, medications, or lab tests, try your best to use the tool to search for relevant information in the database and determine if it relates to the user's request.
 - Only when you have gathered all necessary information from the user or the database, produce a single, valid SQL query that fully reflects the user's request.
@@ -43,10 +44,10 @@ Your role is to guide the user to express their intent clearly and completely in
 
 2. Repeat step 1 until the user indicates that they have provided all the information.
 
-3. Once the user says something like “no, that’s all,” then prompt:
-    - **“Please confirm by replying with the final complete instruction wrapped in `<final_instruction>...</final_instruction>`.”**
+3. When the user indicates they are finished (e.g., says “no, that's all,” “goodbye,” or anything similar to ending the conversation), respond with:
+    - **“Please confirm by replying with the final complete instruction wrapped in <final_instruction>...</final_instruction>.”**
 
-4. ✅ Wait for the user to respond with the final instruction in that format. Do not produce the instruction yourself.
+4. Wait for the user to respond with the final instruction in that format. Do not produce the instruction yourself.
 
 ## Important Notes
 
@@ -80,13 +81,24 @@ class InterrogatorAgent(Agent):
         max_retries = 3
         retries = 0
 
+        def extract_final_instruction(messages) -> Optional[str]:
+            for message in reversed(messages):
+                match = re.search(
+                    r"<final_instruction>(.*?)</final_instruction>",
+                    message["content"],
+                    re.DOTALL | re.IGNORECASE,
+                )
+                if match:
+                    return match.group(1).strip()
+            return None
+
         while not confirmed:
             if trial >= max_num_steps:
                 if retries >= max_retries:
                     raise RuntimeError(
                         "Maximum number of steps reached and retry limit exceeded without confirmation."
                     )
-                # Clear cache: reset messages except for system and initial user message
+                # Reset conversation state
                 messages = [
                     {"role": "system", "content": self.instruction},
                     {"role": "user", "content": initial_message},
@@ -111,41 +123,32 @@ class InterrogatorAgent(Agent):
                 except Exception as e:
                     time.sleep(2)
                     print(e, end="\r")
+
             assistant_reply = res.choices[0].message.model_dump()
             logger.log_chat(
                 assistant_reply["content"], f"Interrogator Agent (Task {task_index})"
             )
             action = convert_message_to_action(assistant_reply)
             env_response = env.step(action)
+
             user_reply = env_response.observation
             messages.extend(
                 [
                     assistant_reply,
-                    {"role": "user", "content": env_response.observation},
+                    {"role": "user", "content": user_reply},
                 ]
             )
-            # Detect <final_instruction> ... </final_instruction>
-            if re.search(
-                r"<final_instruction>.*?</final_instruction>",
-                user_reply,
-                re.DOTALL | re.IGNORECASE,
-            ):
-                confirmed = True
-            trial += 1
-            logger.log_chat(
-                env_response.observation, f"User Response Task {task_index}"
-            )
 
-        # Return the last user-provided final instruction
-        # Return only the user request inside <final_instruction> ... </final_instruction>
-        final_instruction_match = re.search(
-            r"<final_instruction>(.*?)</final_instruction>",
-            messages[-1]["content"],
-            re.DOTALL | re.IGNORECASE,
-        )
-        if final_instruction_match:
-            return final_instruction_match.group(1).strip(), agent_cost
-        return messages[-1]["content"], agent_cost
+            logger.log_chat(user_reply, f"User Response Task {task_index}")
+
+            # Check if the user provided a valid final instruction
+            if extract_final_instruction([{"content": user_reply}]):
+                confirmed = True
+
+            trial += 1
+
+        final_instruction = extract_final_instruction(messages)
+        return final_instruction or messages[-1]["content"], agent_cost
 
 
 class ToolCallingAgentV2(Agent):
