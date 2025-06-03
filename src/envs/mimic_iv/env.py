@@ -23,6 +23,7 @@ class MimicIVEnv(Env):
         user_strategy: str,
         user_model: str,
         task_index: int,
+        vector_db: VectorDB,
         db_path: str = "src/envs/mimic_iv/mimic_iv.sqlite",
     ):
         assert os.path.exists(db_path), f"Database file does not exist: {db_path}"
@@ -32,16 +33,6 @@ class MimicIVEnv(Env):
             rule = f.read()
         engine = create_engine(f"sqlite:///{db_path}")
         documentation_path = "./mimic_iv_schema.json"
-        dataset_path = "./data/text_sql.csv"
-        vector_db = VectorDB(
-            dataset_path=dataset_path,
-            index_path="./data/index/text_sql.index",
-            model_name="emilyalsentzer/Bio_ClinicalBERT",
-        )
-        if not os.path.exists(vector_db.index_path):
-            vector_db.build_index()
-        else:
-            vector_db.load_index()
         retriever = Retriever(vector_db)
         with open(documentation_path, "r") as file:
             documentation = json.load(file)

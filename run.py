@@ -8,6 +8,8 @@ from datetime import datetime
 from math import comb
 from typing import List
 
+from src.retrieve import VectorDB
+
 file_lock = threading.Lock()
 
 from dotenv import load_dotenv
@@ -15,7 +17,7 @@ from dotenv import load_dotenv
 from automatic_evaluation import role_fault_classification
 from src.agent_factory import get_agent
 from src.envs import get_env
-from src.types import CostInfo, EnvRunResult
+from src.types_utils import CostInfo, EnvRunResult
 
 load_dotenv()
 
@@ -164,6 +166,21 @@ def update_checkpoint(ckpt_path, result, lock):
             json.dump(data + [result.model_dump()], f, indent=2)
 
 
+def load_vector_db():
+    dataset_path = "./data/text_sql.csv"
+
+    vector_db = VectorDB(
+        dataset_path=dataset_path,
+        index_path="./data/index/text_sql.index",
+        model_name="emilyalsentzer/Bio_ClinicalBERT",
+    )
+    if not os.path.exists(vector_db.index_path):
+        vector_db.build_index()
+    else:
+        vector_db.load_index()
+    return vector_db
+
+
 def run(config: Namespace):
     timestamp = datetime.now().strftime("%m%d%H%M%S")
     checkpoint_filename = (
@@ -176,11 +193,14 @@ def run(config: Namespace):
 
     print(f"Loading user with strategy: {config.user_strategy}")
 
+    vector_db = load_vector_db()
+
     env = get_env(
         env_name=config.env,
         eval_mode=config.eval_mode,
         user_strategy=config.user_strategy,
         user_model=config.user_model,
+        vector_db=vector_db,
     )
     agent = get_agent(
         tools_info=env.tools_info,
