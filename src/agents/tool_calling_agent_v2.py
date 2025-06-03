@@ -14,20 +14,14 @@ logger = Logger()
 
 TOOL_CALLING_INSTRUCTION = """- You are a SQL agent that translates natural language questions into precise SQL queries for electronic health records (EHR).
 - You are currently engaged in a conversation with a user who wants to retrieve data from an EHR database.
-- Note that the user is not familiar with SQL or the database schema, so you should aim to provide clear and understandable responses.
-- If the user's request is ambiguous or missing crucial information (e.g., filtering criteria), you must ask clarifying questions in plain language. 
 - You can interact with the database to learn more about its schema or the values stored in it by using the tools provided.
 - Do not invent or fabricate any information not provided by the user or the tools.
 - You should make at most one tool call at a time.
 - If you do call a tool, do not respond to the user in that same turn.
 - Do not generate SQL queries directly without knowing the database schema and values intended to be used in the SQL query by calling substring_search_tool.
-- When the user asks for specific diagnoses, procedures, medications, or lab tests, try your best to use the tool to search for relevant information in the database and determine if it relates to the user's request.  
+- When the user asks for specific diagnoses, procedures, medications, or lab tests, try your best to use the tool to search for relevant information in the database and determine if it relates to the user's request.
 - Only when you have gathered all necessary information from the user or the database, produce a single, valid SQL query that fully reflects the user's request.
 - Avoid partial or speculative queries that could cause confusion or yield inaccurate results.
-"""
-
-ASK_FOR_SPECIFIC = """
-Can you please provide more specific information about your request and try to break down the goal if possible?
 """
 
 INTERROGATOR_INSTRUCTION = """
@@ -69,14 +63,42 @@ class InterrogatorAgent(Agent):
         self.temperature = temperature
         self.instruction = INTERROGATOR_INSTRUCTION
 
-    def run(self, env: Env, initial_message: str) -> str:
+    def run(
+        self,
+        env: Env,
+        initial_message: str,
+        max_num_steps: int = 30,
+        task_index: Optional[int] = None,
+    ) -> str:
         messages = [
             {"role": "system", "content": self.instruction},
             {"role": "user", "content": initial_message},
         ]
         confirmed = False
         agent_cost = 0.0
+        trial = 0
+        max_retries = 3
+        retries = 0
+
         while not confirmed:
+            if trial >= max_num_steps:
+                if retries >= max_retries:
+                    raise RuntimeError(
+                        "Maximum number of steps reached and retry limit exceeded without confirmation."
+                    )
+                # Clear cache: reset messages except for system and initial user message
+                messages = [
+                    {"role": "system", "content": self.instruction},
+                    {"role": "user", "content": initial_message},
+                ]
+                trial = 0
+                retries += 1
+                logger.log_chat(
+                    f"Retrying InterrogatorAgent: cleared message cache (retry {retries})",
+                    f"Interrogator Agent (Task {task_index})",
+                )
+                continue
+
             while True:
                 try:
                     res = completion(
@@ -90,7 +112,9 @@ class InterrogatorAgent(Agent):
                     time.sleep(2)
                     print(e, end="\r")
             assistant_reply = res.choices[0].message.model_dump()
-            logger.log_chat(assistant_reply["content"], "Interrogator Agent")
+            logger.log_chat(
+                assistant_reply["content"], f"Interrogator Agent (Task {task_index})"
+            )
             action = convert_message_to_action(assistant_reply)
             env_response = env.step(action)
             user_reply = env_response.observation
@@ -107,7 +131,10 @@ class InterrogatorAgent(Agent):
                 re.DOTALL | re.IGNORECASE,
             ):
                 confirmed = True
-            logger.log_chat(env_response.observation, "User Response")
+            trial += 1
+            logger.log_chat(
+                env_response.observation, f"User Response Task {task_index}"
+            )
 
         # Return the last user-provided final instruction
         # Return only the user request inside <final_instruction> ... </final_instruction>
@@ -145,14 +172,14 @@ class ToolCallingAgentV2(Agent):
         reward = 0.0
 
         interrogator = InterrogatorAgent(model=self.model, temperature=self.temperature)
-        final_instruction = interrogator.run(env, obs_user)
+        final_instruction = interrogator.run(env, obs_user, task_index=task_index)
 
         messages: List[Dict[str, Any]] = [
             {"role": "system", "content": self.instruction},
             {"role": "user", "content": final_instruction},
         ]
 
-        logger.log_chat(final_instruction, "User Final Request")
+        logger.log_chat(final_instruction, f"User Final Request (Task {task_index})")
 
         for _ in range(max_num_steps):
             while True:
@@ -162,7 +189,6 @@ class ToolCallingAgentV2(Agent):
                         model=self.model,
                         tools=self.tools_info,
                         temperature=self.temperature,
-                        reasoning_effort="low",
                     )
                     agent_cost += res._hidden_params["response_cost"]
                     break
@@ -173,11 +199,14 @@ class ToolCallingAgentV2(Agent):
 
             action = convert_message_to_action(next_message)
             if action.name == "respond":
-                logger.log_chat(next_message["content"], "Agent Response")
+                logger.log_chat(
+                    next_message["content"],
+                    f"Agent Response Task {task_index}",
+                )
             else:
                 logger.log_chat(
                     next_message["tool_calls"][0]["function"]["arguments"],
-                    f"Tool Call : {action.name}",
+                    f"Tool Call : {action.name} (Task {task_index})",
                 )
             env_response = env.step(action)
             reward = env_response.reward
@@ -195,7 +224,9 @@ class ToolCallingAgentV2(Agent):
                         },
                     ]
                 )
-                logger.log_chat(env_response.observation, "Tool Response")
+                logger.log_chat(
+                    env_response.observation, f"Tool Response Task {task_index}"
+                )
             else:
                 messages.extend(
                     [
@@ -203,7 +234,9 @@ class ToolCallingAgentV2(Agent):
                         {"role": "user", "content": env_response.observation},
                     ]
                 )
-                logger.log_chat(env_response.observation, "User Response")
+                logger.log_chat(
+                    env_response.observation, f"User Response Task {task_index}"
+                )
             if env_response.done:
                 break
 
