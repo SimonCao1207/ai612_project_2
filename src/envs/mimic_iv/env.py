@@ -9,7 +9,7 @@ from src.envs.mimic_iv.tools.sql_db_list_tables import SqlDbListTables
 from src.envs.mimic_iv.tools.sql_db_query import SqlDbQuery
 from src.envs.mimic_iv.tools.sql_db_schema import SqlDbSchema
 from src.envs.mimic_iv.tools.value_substring_search import ValueSubstringSearch
-from src.types import Task
+from src.types_utils import Task
 
 FOLDER_PATH = os.path.dirname(__file__)
 

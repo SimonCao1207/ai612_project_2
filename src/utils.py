@@ -3,7 +3,7 @@ import re
 from ast import literal_eval
 from typing import Any, Dict
 
-from src.types import Action
+from src.types_utils import Action
 
 
 def parse_sql(response: str) -> str:

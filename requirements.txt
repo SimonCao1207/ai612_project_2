@@ -8,3 +8,5 @@ beautifulsoup4
 chromadb==1.0.8
 sentence-transformers==4.1.0
 rapidfuzz==3.13.0
+faiss-cpu
+transformers

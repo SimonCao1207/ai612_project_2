@@ -2,7 +2,7 @@ import abc
 from typing import Optional
 
 from src.envs.base import Env
-from src.types import AgentRunResult
+from src.types_utils import AgentRunResult
 
 
 class Agent(abc.ABC):

@@ -3,7 +3,7 @@ import sqlite3
 from typing import Dict, List, Optional, Type
 
 from src.envs.user import load_user
-from src.types import (
+from src.types_utils import (
     Action,
     EnvInfo,
     EnvResponse,

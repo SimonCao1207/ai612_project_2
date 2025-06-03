@@ -7,7 +7,7 @@ from litellm import completion
 from src.agents.base import Agent
 from src.envs.base import Env
 from src.log import Logger
-from src.types import AgentRunResult
+from src.types_utils import AgentRunResult
 from src.utils import convert_message_to_action
 
 logger = Logger()
@@ -69,7 +69,7 @@ class InterrogatorAgent(Agent):
         initial_message: str,
         max_num_steps: int = 30,
         task_index: Optional[int] = None,
-    ) -> str:
+    ) -> tuple[str, float]:
         messages = [
             {"role": "system", "content": self.instruction},
             {"role": "user", "content": initial_message},
@@ -144,8 +144,8 @@ class InterrogatorAgent(Agent):
             re.DOTALL | re.IGNORECASE,
         )
         if final_instruction_match:
-            return final_instruction_match.group(1).strip()
-        return messages[-1]["content"]
+            return final_instruction_match.group(1).strip(), agent_cost
+        return messages[-1]["content"], agent_cost
 
 
 class ToolCallingAgentV2(Agent):
@@ -172,7 +172,8 @@ class ToolCallingAgentV2(Agent):
         reward = 0.0
 
         interrogator = InterrogatorAgent(model=self.model, temperature=self.temperature)
-        final_instruction = interrogator.run(env, obs_user, task_index=task_index)
+        final_instruction, cost = interrogator.run(env, obs_user, task_index=task_index)
+        agent_cost += cost
 
         messages: List[Dict[str, Any]] = [
             {"role": "system", "content": self.instruction},
