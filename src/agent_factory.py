@@ -30,13 +30,6 @@ def get_agent(
             rule=rule,
         )
     else:
-        # TODO: implement your own agent and return it here
         raise ValueError(
             f"Agent strategy {agent_strategy} not implemented. Erase this line after implementing your own agent."
-        )
-        from src.agents.TODO_implement_agent import TodoImplementAgent
-
-        return TodoImplementAgent(
-            model=model,
-            temperature=temperature,
         )
