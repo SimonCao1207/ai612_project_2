@@ -239,6 +239,7 @@ def run(config: Namespace):
             user_strategy=config.user_strategy,
             user_model=config.user_model,
             task_index=idx,
+            vector_db=vector_db,
         )
         exit_flag = False
         while True:

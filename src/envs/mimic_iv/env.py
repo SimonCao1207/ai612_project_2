@@ -4,7 +4,6 @@ import os
 from sqlalchemy import create_engine
 
 from src.envs.base import Env
-from src.envs.mimic_iv.tools.get_icd_code_by_title import RetrieveICDCodeByTitle
 from src.envs.mimic_iv.tools.instruction_sql_search import RAG
 from src.envs.mimic_iv.tools.sql_db_list_tables import SqlDbListTables
 from src.envs.mimic_iv.tools.sql_db_query import SqlDbQuery
@@ -40,7 +39,6 @@ class MimicIVEnv(Env):
         sql_db_schema = SqlDbSchema(engine=engine, documentation=documentation)
         sql_db_query = SqlDbQuery(engine=engine)
         value_substring_search = ValueSubstringSearch(engine=engine)
-        get_icd_code_by_title = RetrieveICDCodeByTitle(engine=engine)
         instruction_sql_search = RAG(retriever=retriever)
 
         super().__init__(
@@ -49,7 +47,6 @@ class MimicIVEnv(Env):
                 sql_db_schema,
                 value_substring_search,
                 sql_db_query,
-                get_icd_code_by_title,
                 instruction_sql_search,
             ],  # type: ignore
             tasks=tasks,

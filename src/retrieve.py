@@ -123,8 +123,8 @@ if __name__ == "__main__":
     retriever = Retriever(vector_db)
     question = "Find the top 3 microbiological tests that were ordered the highest number of times for patients who had a percutaneous abdominal drainage (PAD) in the calendar year 2024, specifically considering only tests conducted within the same month as the PAD procedure. If there is more than one test with the same count at the third position, include all of them."
     results = retriever.retrieve(question)
+    print(f"Query: {question}")
     if results:
-        print("Retrieved results:")
         for result, distance in results:
             print(f"Question: {result['question']}, Distance: {distance:.4f}")
     else:

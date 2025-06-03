@@ -14,11 +14,17 @@ class RAG(BaseModel):
         arbitrary_types_allowed = True
 
     def invoke(self, user_query: str = "") -> str:
+        threshold = 0.2  # Define a threshold for similarity
         results = self.retriever.retrieve(user_query)
-        if not results:
+        filtered = [
+            (sample, distance) for sample, distance in results if distance < threshold
+        ]
+        if not filtered:
             return "No similar samples found."
-        formatted = []
-        for sample, _ in results:
+        formatted = [
+            "The following question and SQL query pairs are most similar to the user query and can be used as reference:"
+        ]
+        for sample, _ in filtered:
             question = sample.get("question", "")
             sql = sample.get("sql", "")
             formatted.append(f"\nQuestion: {question}\nSQL: {sql}")
