@@ -42,10 +42,19 @@ Your role is to guide the user to express their intent clearly and completely in
         - “Do you have a specific patient in mind?”
         - “What exactly do you want to find out?”
 
-2. Repeat step 1 until the user indicates that they have provided all the information.
+2. Repeat step 1 until the user indicates they have provided all the information.
 
 3. When the user indicates they are finished (e.g., says “no, that's all,” “goodbye,” or anything similar to ending the conversation), respond with:
-    - **“Please confirm by replying with the final complete instruction wrapped in <final_instruction>...</final_instruction>.”**
+
+---
+Please confirm your final request by copying and pasting it inside the following tags, **and nothing else**:
+
+Example:
+<final_instruction>Find all medications prescribed for patients with high blood pressure.</final_instruction>
+
+✅ Please reply with only your instruction wrapped inside <final_instruction> tags, like in the example above.
+❌ Do not add explanations, greetings, or any other text outside the tags.
+---
 
 4. Wait for the user to respond with the final instruction in that format. Do not produce the instruction yourself.
 
@@ -83,9 +92,13 @@ class InterrogatorAgent(Agent):
 
         def extract_final_instruction(messages) -> Optional[str]:
             for message in reversed(messages):
+                content = message["content"]
+                # Normalize invisible characters
+                content = content.replace("\r", "").replace("\xa0", " ").strip()
+
                 match = re.search(
                     r"<final_instruction>(.*?)</final_instruction>",
-                    message["content"],
+                    content,
                     re.DOTALL | re.IGNORECASE,
                 )
                 if match:
@@ -142,7 +155,7 @@ class InterrogatorAgent(Agent):
             logger.log_chat(user_reply, f"User Response Task {task_index}")
 
             # Check if the user provided a valid final instruction
-            if extract_final_instruction([{"content": user_reply}]):
+            if extract_final_instruction(messages):
                 confirmed = True
 
             trial += 1
