@@ -1,3 +1,4 @@
+import re
 import time
 from typing import Any, Dict, List, Optional
 
@@ -29,6 +30,96 @@ ASK_FOR_SPECIFIC = """
 Can you please provide more specific information about your request and try to break down the goal if possible?
 """
 
+INTERROGATOR_INSTRUCTION = """
+You are a helpful assistant that helps users clarify their requests to retrieve information from an electronic health record (EHR) database.
+
+The user is a human with no technical background or knowledge of SQL or the database schema.
+
+Your role is to guide the user to express their intent clearly and completely in natural language.
+
+## Conversation Strategy
+
+1. When a user gives an ambiguous or partial request, ask **simple, goal-related follow-up questions** to help them clarify what they want.
+    - Do not ask about SQL, database schema, or structure.
+    - Do not use technical terms.
+    - Keep questions open-ended, like:
+        - “Is there anything else I should know?”
+        - “Do you have a specific patient in mind?”
+        - “What exactly do you want to find out?”
+
+2. Repeat step 1 until the user indicates that they have provided all the information.
+
+3. Once the user says something like “no, that’s all,” then prompt:
+    - **“Please confirm by replying with the final complete instruction wrapped in `<final_instruction>...</final_instruction>`.”**
+
+4. ✅ Wait for the user to respond with the final instruction in that format. Do not produce the instruction yourself.
+
+## Important Notes
+
+- Do NOT use SQL terminology or generate SQL queries.
+- Do NOT try to guess the schema or data.
+- Only focus on understanding the user's intent in plain language.
+- Be friendly, helpful, and non-technical.
+"""
+
+
+class InterrogatorAgent(Agent):
+    def __init__(self, model: str, temperature: float = 0.0):
+        self.model = model
+        self.temperature = temperature
+        self.instruction = INTERROGATOR_INSTRUCTION
+
+    def run(self, env: Env, initial_message: str) -> str:
+        messages = [
+            {"role": "system", "content": self.instruction},
+            {"role": "user", "content": initial_message},
+        ]
+        confirmed = False
+        agent_cost = 0.0
+        while not confirmed:
+            while True:
+                try:
+                    res = completion(
+                        messages=messages,
+                        model=self.model,
+                        temperature=self.temperature,
+                    )
+                    agent_cost += res._hidden_params["response_cost"]
+                    break
+                except Exception as e:
+                    time.sleep(2)
+                    print(e, end="\r")
+            assistant_reply = res.choices[0].message.model_dump()
+            logger.log_chat(assistant_reply["content"], "Interrogator Agent")
+            action = convert_message_to_action(assistant_reply)
+            env_response = env.step(action)
+            user_reply = env_response.observation
+            messages.extend(
+                [
+                    assistant_reply,
+                    {"role": "user", "content": env_response.observation},
+                ]
+            )
+            # Detect <final_instruction> ... </final_instruction>
+            if re.search(
+                r"<final_instruction>.*?</final_instruction>",
+                user_reply,
+                re.DOTALL | re.IGNORECASE,
+            ):
+                confirmed = True
+            logger.log_chat(env_response.observation, "User Response")
+
+        # Return the last user-provided final instruction
+        # Return only the user request inside <final_instruction> ... </final_instruction>
+        final_instruction_match = re.search(
+            r"<final_instruction>(.*?)</final_instruction>",
+            messages[-1]["content"],
+            re.DOTALL | re.IGNORECASE,
+        )
+        if final_instruction_match:
+            return final_instruction_match.group(1).strip()
+        return messages[-1]["content"]
+
 
 class ToolCallingAgentV2(Agent):
     def __init__(
@@ -43,7 +134,6 @@ class ToolCallingAgentV2(Agent):
         self.model = model
         self.temperature = temperature
         self.instruction = TOOL_CALLING_INSTRUCTION + "\nRules:\n" + self.rule
-        self.ask_for_sepcific = False
 
     def run(
         self, env: Env, task_index: Optional[int] = None, max_num_steps: int = 30
@@ -53,35 +143,33 @@ class ToolCallingAgentV2(Agent):
         obs_user = env_reset_res.observation
         env_info = env_reset_res.info.model_dump()
         reward = 0.0
+
+        interrogator = InterrogatorAgent(model=self.model, temperature=self.temperature)
+        final_instruction = interrogator.run(env, obs_user)
+
         messages: List[Dict[str, Any]] = [
             {"role": "system", "content": self.instruction},
-            {"role": "user", "content": obs_user},
+            {"role": "user", "content": final_instruction},
         ]
 
-        logger.log_chat(obs_user, "User request")
-        self.ask_for_sepcific = False
+        logger.log_chat(final_instruction, "User Final Request")
+
         for _ in range(max_num_steps):
-            if not self.ask_for_sepcific:
-                next_message = {
-                    "role": "assistant",
-                    "content": ASK_FOR_SPECIFIC,
-                }
-                self.ask_for_sepcific = True
-            else:
-                while True:
-                    try:
-                        res = completion(
-                            messages=messages,
-                            model=self.model,
-                            tools=self.tools_info,
-                            temperature=self.temperature,
-                        )
-                        agent_cost += res._hidden_params["response_cost"]
-                        break
-                    except Exception as e:
-                        time.sleep(3)
-                        print(e, end="\r")
-                next_message = res.choices[0].message.model_dump()
+            while True:
+                try:
+                    res = completion(
+                        messages=messages,
+                        model=self.model,
+                        tools=self.tools_info,
+                        temperature=self.temperature,
+                        reasoning_effort="low",
+                    )
+                    agent_cost += res._hidden_params["response_cost"]
+                    break
+                except Exception as e:
+                    time.sleep(3)
+                    print(e, end="\r")
+            next_message = res.choices[0].message.model_dump()
 
             action = convert_message_to_action(next_message)
             if action.name == "respond":

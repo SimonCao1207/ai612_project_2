@@ -1,6 +1,6 @@
 sqlparse
 streamlit
-litellm==1.67.2
+litellm
 sqlalchemy
 python-dotenv
 requests
