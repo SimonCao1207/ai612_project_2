@@ -84,6 +84,7 @@ class InterrogatorAgent(Agent):
             {"role": "system", "content": self.instruction},
             {"role": "user", "content": initial_message},
         ]
+        logger.log_chat(initial_message, f"User Initial Request (Task {task_index})")
         confirmed = False
         agent_cost = 0.0
         trial = 0
@@ -91,7 +92,7 @@ class InterrogatorAgent(Agent):
         retries = 0
 
         def extract_final_instruction(messages) -> Optional[str]:
-            for message in reversed(messages):
+            for message in messages:
                 content = message["content"]
                 # Normalize invisible characters
                 content = content.replace("\r", "").replace("\xa0", " ").strip()
@@ -153,14 +154,17 @@ class InterrogatorAgent(Agent):
             )
 
             logger.log_chat(user_reply, f"User Response Task {task_index}")
+            test_messages = [messages[-1], messages[-2]]
+
+            extracted_instruction = extract_final_instruction(test_messages)
 
             # Check if the user provided a valid final instruction
-            if extract_final_instruction(messages):
+            if extracted_instruction is not None:
                 confirmed = True
 
             trial += 1
 
-        final_instruction = extract_final_instruction(messages)
+        final_instruction = extracted_instruction
         return final_instruction or messages[-1]["content"], agent_cost
 
 
