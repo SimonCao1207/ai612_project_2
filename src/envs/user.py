@@ -1,6 +1,8 @@
 import abc
+from typing import Any, Dict, List, Optional
+
 from litellm import completion
-from typing import Optional, List, Dict, Any
+
 
 class BaseUser(abc.ABC):
     @abc.abstractmethod
@@ -15,6 +17,7 @@ class BaseUser(abc.ABC):
     def get_total_cost(self) -> float:
         raise NotImplementedError
 
+
 class LLMUser(BaseUser):
     def __init__(self, model: str) -> None:
         super().__init__()
@@ -24,9 +27,7 @@ class LLMUser(BaseUser):
         self.reset()
 
     def generate_next_message(self, messages: List[Dict[str, Any]]) -> str:
-        res = completion(
-            model=self.model, messages=messages, temperature=0.5
-        )
+        res = completion(model=self.model, messages=messages, temperature=0.5)
         message = res.choices[0].message
         self.messages.append(message.model_dump())
         self.total_cost += res._hidden_params["response_cost"]
@@ -87,10 +88,8 @@ User instruction: {instruction_display}
     def get_total_cost(self) -> float:
         return round(self.total_cost, 8)
 
-def load_user(
-    user_strategy: str,
-    model: str
-) -> BaseUser:
+
+def load_user(user_strategy: str, model: str) -> BaseUser:
     if user_strategy == "llm":
         return LLMUser(model=model)
     raise ValueError(f"Unknown user strategy {user_strategy}")

@@ -8,7 +8,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from litellm import completion
 
-from src.types import Task
+from src.types_utils import Task
 
 load_dotenv()
 MODEL = "gemini/gemini-2.0-flash"

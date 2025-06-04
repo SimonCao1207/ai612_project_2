@@ -6,7 +6,7 @@ from litellm import completion
 from src.agents.base import Agent
 from src.envs.base import Env
 from src.log import Logger
-from src.types import AgentRunResult
+from src.types_utils import AgentRunResult
 from src.utils import convert_message_to_action
 
 logger = Logger()
