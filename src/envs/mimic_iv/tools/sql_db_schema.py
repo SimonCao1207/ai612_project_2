@@ -37,7 +37,8 @@ class SqlDbSchema(BaseModel):
         # Split the comma-separated table names and iterate over them
         for table in table_names.split(","):
             table = table.strip()
-            table_description = self.get_table_description(table)
+            # table_description = self.get_table_description(table)
+            table_description = None
             if table_description:
                 result.append(
                     f"- Table {table} description:\n{table_description['description']}"
