@@ -18,6 +18,7 @@ class LogLevel(IntEnum):
 
 
 YELLOW_HEX = "#d4b702"
+BLUE_HEX = "#1f78d4"
 
 
 class Logger:
@@ -82,12 +83,14 @@ class Logger:
             level=level,
         )
 
-    def log_rule(self, title: str, level: int = LogLevel.INFO) -> None:
+    def log_rule(
+        self, title: str, level: int = LogLevel.INFO, style: str = YELLOW_HEX
+    ) -> None:
         self.log(
             Rule(
                 "[bold]" + title,
                 characters="━",
-                style=YELLOW_HEX,
+                style=style,
             ),
             level=LogLevel.INFO,
         )
@@ -98,13 +101,14 @@ class Logger:
         title: Optional[str] = None,
         subtitle: Optional[str] = None,
         level: LogLevel = LogLevel.INFO,
+        style: str = YELLOW_HEX,
     ) -> None:
         self.log(
             Panel(
                 f"\n[bold]{content}\n",
                 title="[bold]" + (f" - {title}" if title else ""),
                 subtitle=subtitle,
-                border_style=YELLOW_HEX,
+                border_style=style,
                 subtitle_align="left",
             ),
             level=level,
