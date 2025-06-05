@@ -83,52 +83,54 @@ class Env(object):
 
         reward = 0.0
 
-        # Find the last SQL action
-        last_sql = None
+        # Find the SQL actions
+        curr_sql = None
         for action in self.actions:
             if action.name == "sql_db_query":
-                last_sql = action
-        if last_sql:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
+                curr_sql = action
+            if curr_sql:
+                conn = sqlite3.connect(self.db_path)
+                cursor = conn.cursor()
 
-            try:
-                gold_answer = process_result(self.task.gold_answer)
-                cursor.execute(last_sql.kwargs["query"])
-                pred_sql_answer = cursor.fetchall()
-                pred_sql_answer = process_result(pred_sql_answer)
-                # returning a single column
-                if pred_sql_answer and len(pred_sql_answer) > 0:
-                    if len(pred_sql_answer[0]) == 1:
-                        if pred_sql_answer == gold_answer:
-                            reward = 1.0
-                    # returning multiple columns
-                    else:
-                        converted_pred_sql_answer = list(zip(*pred_sql_answer))
-                        for i in range(len(converted_pred_sql_answer)):
-                            if sorted(
-                                set(
-                                    [
-                                        r
-                                        for r in converted_pred_sql_answer[i]
-                                        if r != "None"
-                                    ]
-                                )
-                            ) == sorted(set([el[0] for el in gold_answer])):
+                try:
+                    gold_answer = process_result(self.task.gold_answer)
+                    cursor.execute(curr_sql.kwargs["query"])
+                    pred_sql_answer = cursor.fetchall()
+                    pred_sql_answer = process_result(pred_sql_answer)
+                    # returning a single column
+                    if pred_sql_answer and len(pred_sql_answer) > 0:
+                        if len(pred_sql_answer[0]) == 1:
+                            if pred_sql_answer == gold_answer:
                                 reward = 1.0
-                                break
-            except sqlite3.Error:
-                pred_sql_answer = []
-            conn.close()
-            reward_info = RewardInfo(
-                reward=reward,
-                info={
-                    "pred_sql": last_sql.kwargs["query"],
-                    "pred_answer": pred_sql_answer,
-                },
-            )
-        else:
-            reward_info = RewardInfo(
-                reward=reward, info={"pred_sql": None, "pred_answer": None}
-            )
+                        # returning multiple columns
+                        else:
+                            converted_pred_sql_answer = list(zip(*pred_sql_answer))
+                            for i in range(len(converted_pred_sql_answer)):
+                                if sorted(
+                                    set(
+                                        [
+                                            r
+                                            for r in converted_pred_sql_answer[i]
+                                            if r != "None"
+                                        ]
+                                    )
+                                ) == sorted(set([el[0] for el in gold_answer])):
+                                    reward = 1.0
+                                    break
+                except sqlite3.Error:
+                    pred_sql_answer = []
+                conn.close()
+                reward_info = RewardInfo(
+                    reward=reward,
+                    info={
+                        "pred_sql": curr_sql.kwargs["query"],
+                        "pred_answer": pred_sql_answer,
+                    },
+                )
+                if reward > 0:
+                    return reward_info
+            else:
+                reward_info = RewardInfo(
+                    reward=reward, info={"pred_sql": None, "pred_answer": None}
+                )
         return reward_info

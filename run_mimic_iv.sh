@@ -7,7 +7,7 @@ python run.py --env mimic_iv \
     --seed 42 \
     --num_trials 4 \
     --max_concurrency 5 \
-    --eval_mode test # "valid" if running on the validation set. "test" if running on the test set.
+    --eval_mode valid # "valid" if running on the validation set. "test" if running on the test set.
 
 # TODO: change --agent_strategy to your own implementation
 # max_concurrency is the number of concurrent runs of the Tasks in the evaluation data.
