@@ -1,7 +1,9 @@
 import abc
+import time
 from typing import Any, Dict, List, Optional
 
 from litellm import completion
+from litellm.exceptions import ContextWindowExceededError
 
 
 class BaseUser(abc.ABC):
@@ -26,12 +28,50 @@ class LLMUser(BaseUser):
         self.total_cost = 0.0
         self.reset()
 
+    # def generate_next_message(self, messages: List[Dict[str, Any]]) -> str:
+    #    res = completion(
+    #        model=self.model, messages=messages, temperature=0.5
+    #    )
+    #    message = res.choices[0].message
+    #    self.messages.append(message.model_dump())
+    #    self.total_cost += res._hidden_params["response_cost"]
+    #    return message.content
+
+    ####
     def generate_next_message(self, messages: List[Dict[str, Any]]) -> str:
-        res = completion(model=self.model, messages=messages, temperature=0.5)
-        message = res.choices[0].message
-        self.messages.append(message.model_dump())
-        self.total_cost += res._hidden_params["response_cost"]
-        return message.content
+        while True:
+            try:
+                res = completion(model=self.model, messages=messages, temperature=0.5)
+                message = res.choices[0].message
+                if (
+                    len(self.messages) > 2
+                    and message.content
+                    and (
+                        "SELECT" in message.content
+                        or "default_api" in message.content
+                        or "print(" in message.content
+                    )
+                ):
+                    messages += [
+                        {
+                            "role": "user",
+                            "content": "You must act like a user, not like a DB agent. Do not generate any SQL query or other DB agent artifacts like default_api or print() in your response, but follow the instruction and rules in the system prompt.",
+                        }
+                    ]
+                    raise ValueError(
+                        "The user acts like a DB agent: the user response includes SQL query or other DB agent artifacts like default_api or print()"
+                    )
+                self.messages.append(message.model_dump())
+                self.total_cost += res._hidden_params["response_cost"]
+                return message.content
+            except ContextWindowExceededError:
+                # print("⚠️ Context window exceeded:", e)
+                return "###END###"
+            except Exception:
+                # print(f"[User] Error: {e}")
+                time.sleep(3)
+
+    ####
 
     def build_system_prompt(self, instruction: Optional[str]) -> str:
         instruction_display = (
@@ -67,6 +107,7 @@ User instruction: {instruction_display}
 20. Do not respond with a fake execution result of the SQL query, or made up information about the database schema.
 21. NEVER provide information you don't have access to e.g., information related to the database schema, database contents, execution result of the SQL query, etc.
 22. If the DB agent replies only with the SQL query, you should say "I have no knowledge about the Structured Query Language. Give me the explanation or the result of the SQL query."
+23. Whenever asked about the information about the database or SQL, you should say "You should find that out for me."
 """
 
     def reset(self, instruction: Optional[str] = None) -> str:
